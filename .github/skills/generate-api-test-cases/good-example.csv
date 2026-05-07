@@ -1,0 +1,24 @@
+TCID;tests;Zusammenfassung;Beschreibung;Aktion;Data;Erwartetes Ergebnis;Testplan;Autor;Stichwort;Stichwort;Prio;Repo
+1;SPSH-4001;SPSH-4001: POST /api/v1/persons – gueltiger Request;"Dieses Ticket dient dem Dev-Test-Team dazu, ihre Tests zu strukturieren und dokumentieren.
+Es wird ausfuehrlich auf DEV und MAIN getestet.
+Auf STAGE erfolgen ausgewaehlte Tests nur noch im Rahmen von Smoketests.
+Nach dem Sprint wird geprueft, ob dieser Test in die Regression uebernommen werden soll.";"# Bearer Token setzen (Daten)
+# *POST* _/api/v1/persons_ aufrufen";"Rolle: Landesadmin
+Request-Body: { 'vorname': 'Test', 'nachname': 'Person', 'email': 'test@schule.de' }";HTTP 201 – Response enthaelt _id_ der neu angelegten Person;SPSH-3210;silvia.grosche;DevTest21;Beschrieben;medium;Devtest/Sprint 21
+2;SPSH-4001;SPSH-4001: POST /api/v1/persons – Pflichtfeld fehlt;"Dieses Ticket dient dem Dev-Test-Team dazu, ihre Tests zu strukturieren und dokumentieren.
+Es wird ausfuehrlich auf DEV und MAIN getestet.
+Auf STAGE erfolgen ausgewaehlte Tests nur noch im Rahmen von Smoketests.
+Nach dem Sprint wird geprueft, ob dieser Test in die Regression uebernommen werden soll.";"# Bearer Token setzen (Daten)
+# *POST* _/api/v1/persons_ aufrufen";"Rolle: Landesadmin
+Request-Body: { 'vorname': 'Test' } (Feld _nachname_ fehlt)";HTTP 400 – Validierungsfehler: _nachname_ ist Pflichtfeld;SPSH-3210;silvia.grosche;DevTest21;Beschrieben;medium;Devtest/Sprint 21
+3;SPSH-4001;SPSH-4001: POST /api/v1/persons – kein Token;"Dieses Ticket dient dem Dev-Test-Team dazu, ihre Tests zu strukturieren und dokumentieren.
+Es wird ausfuehrlich auf DEV und MAIN getestet.
+Auf STAGE erfolgen ausgewaehlte Tests nur noch im Rahmen von Smoketests.
+Nach dem Sprint wird geprueft, ob dieser Test in die Regression uebernommen werden soll.";"# Aufruf ohne _Authorization_-Header
+# *POST* _/api/v1/persons_ aufrufen";"Request-Body: { 'vorname': 'Test', 'nachname': 'Person', 'email': 'test@schule.de' }";HTTP 401 – Zugriff verweigert (kein Token);SPSH-3210;silvia.grosche;DevTest21;Beschrieben;medium;Devtest/Sprint 21
+4;SPSH-4001;SPSH-4001: POST /api/v1/persons – fehlende Berechtigung;"Dieses Ticket dient dem Dev-Test-Team dazu, ihre Tests zu strukturieren und dokumentieren.
+Es wird ausfuehrlich auf DEV und MAIN getestet.
+Auf STAGE erfolgen ausgewaehlte Tests nur noch im Rahmen von Smoketests.
+Nach dem Sprint wird geprueft, ob dieser Test in die Regression uebernommen werden soll.";"# Bearer Token setzen (Daten)
+# *POST* _/api/v1/persons_ aufrufen";"Rolle: Schuladmin (hat kein Recht, Personen anzulegen)
+Request-Body: { 'vorname': 'Test', 'nachname': 'Person', 'email': 'test@schule.de' }";HTTP 403 – Zugriff verweigert (fehlende Berechtigung);SPSH-3210;silvia.grosche;DevTest21;Beschrieben;medium;Devtest/Sprint 21
