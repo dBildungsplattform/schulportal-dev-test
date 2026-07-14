@@ -5,165 +5,168 @@ description: 'Derives manual test cases from a requirement and saves them direct
 
 # Generate Manual Test Cases
 
-Dieser Skill leitet aus einer Anforderung manuelle Testfälle ab und speichert sie direkt als **CSV-Datei für den Xray-Import**. Im Chat erscheint kein Markdown und keine Tabelle — einziges Ergebnis ist die gespeicherte CSV-Datei.
+This skill derives manual test cases from a requirement and saves them directly as a **CSV file for Xray import**. No Markdown and no table are displayed in the chat — the only result is the saved CSV file.
+
+All generated test case content (e.g., Summary, Action, Data, Expected Result) must be written in **German**.
 
 ## Use When
-- Du sollst manuelle Testfälle aus einer Anforderung, User Story oder einem Ticket erstellen
-- Du wirst gebeten, Testfälle für einen bestimmten Funktionsbereich abzuleiten
+- You are asked to create manual test cases from a requirement, user story, or ticket
+- You are asked to derive test cases for a specific functional area
 
 ## Do Not Use When
-- Es sollen Playwright-/automatisierte Tests in TypeScript geschrieben werden (normaler Coding-Workflow)
-- Es wird nur eine Erklärung oder Analyse einer Anforderung gewünscht, keine Testfälle
-- Es sollen Gherkin-Tests geschrieben werden
+- Playwright/automated tests in TypeScript should be written (normal coding workflow)
+- Only an explanation or analysis of a requirement is desired, no test cases
+- Gherkin tests should be written
 
 ---
 
-## Step 0 — Kontext sammeln (einmalig je Aufgabe)
+## Step 0 — Gather Context (once per task)
 
-**Schritt 1 — Format per Tool abfragen**
+**Step 1 — Ask for format via tool**
 
-Nutze das `vscode_askQuestions`-Tool und stelle genau diese **eine** Frage:
+Use the `vscode_askQuestions` tool and ask exactly this **one** question:
 
-- **Frage**: "Wie sollen die Testfälle strukturiert werden?"
-- **Optionen** (Einzelauswahl, kein Freitext):
-  - **Multi-Test** — Jedes Szenario bekommt eine eigene TCID
-  - **Single-Test** — Alle Prüfungen in einem einzigen Testfall; jede Prüfung wird ein eigener Testschritt
+- **Question**: "How should the test cases be structured?"
+- **Options** (single choice, no free text):
+  - **Multi-Test** — Each scenario gets its own TCID
+  - **Single-Test** — All checks in a single test case; each check is its own test step
 
-Warte auf die Antwort, bevor du fortfährst.
+Wait for the answer before proceeding.
 
-**Schritt 2 — Restliche Angaben im Chat erfragen**
+**Step 2 — Ask for the remaining information in the chat**
 
-Stelle dem User im Chat folgende Fragen als formatierte Liste. Warte auf die Antwort, bevor du fortfährst:
+Ask the user the following questions in the chat as a formatted list. Wait for the answer before proceeding:
 
-1. **Anforderung**: Was soll getestet werden? (User Story, Freitext, Ticket-Inhalt)
-2. **Testtiefe**: Welche Testarten sollen abgedeckt werden? (Mehrfachauswahl möglich)
-   - Positiv-Tests (Happy Path)
-   - Negativ-Tests (Fehlerfälle, ungültige Eingaben)
-   - Grenzwert-Tests
-   - Kombinationen der obigen
-3. **Metadaten** für alle Testfälle dieser Aufgabe:
-   - **Tests** (Ticket-ID, z.B. `"SPSH-234"`)
-   - **Beschreibung** (z.B. `"Test aus Playwright importiert."`)
-   - **Testplan** (Ticket-ID des zugehörigen Testplans, z.B. `"SPSH-3163"`)
-   - **Stichwörter** (eine oder mehrere, z.B. `"Automatisiert"`, `"Beschrieben"` — jedes Stichwort ergibt eine eigene Spalte in der Tabelle)
-   - **Autor** (z.B. `"silvia.grosche"`)
-   - **Repo** (z.B. `"Automatisierung/Navigieren"`)
-   - **Prio** (`"low"`, `"medium"` oder `"high"`)
+1. **Requirement**: What should be tested? (User story, free text, ticket content)
+2. **Test depth**: Which types of tests should be covered? (Multiple choice possible)
+   - Positive tests (Happy Path)
+   - Negative tests (error cases, invalid inputs)
+   - Boundary tests
+   - Combinations of the above
+3. **Metadata** for all test cases of this task:
+   - **Tests** (ticket ID, e.g., `"SPSH-234"`)
+   - **Description** (e.g., `"Test imported from Playwright."`)
+   - **Test plan** (ticket ID of the associated test plan, e.g., `"SPSH-3163"`)
+   - **Keywords** (one or more, e.g., `"Automated"`, `"Described"` — each keyword gets its own column in the table)
+   - **Author** (e.g., `"silvia.grosche"`)
+   - **Repository** (e.g., `"Automation/Navigation"`)
+   - **Priority** (`"low"`, `"medium"` or `"high"`)
 
-> **Fahre erst fort, wenn alle Angaben vorliegen.**
-
----
-
-## Step 0b — Anforderungstext vorverarbeiten (intern — keine Ausgabe)
-
-Ersetze in der gegebenen Anforderung die folgenden Zeichen, bevor du Testfälle ableitest. Dieser Schritt gilt für den gesamten Anforderungstext inkl. Akzeptanzkriterien und Scope. Gib das Ergebnis **nicht** aus.
-
-| Zeichen | Ersetzung |
-|---------|-----------|
-| `"`     | `'`       |
-| `ä`     | `ae`      |
-| `ö`     | `oe`      |
-| `ü`     | `ue`      |
-| `ß`     | `ss`      |
+> **Do not continue until all information is available.**
 
 ---
 
-## Step 1 — Testfälle ableiten
+## Step 0b — Preprocess requirement text (internal — no output)
 
-Leite aus der Anforderung Testfälle ab. Wende je nach gewähltem **Format** eine der beiden folgenden Strategien an:
+Replace the following characters in the given requirement before deriving test cases. This step applies to the entire requirement text including acceptance criteria and scope. Do **not** output the result.
+
+| Character | Replacement |
+|-----------|-------------|
+| `"`       | `'`         |
+| `ä`       | `ae`        |
+| `ö`       | `oe`        |
+| `ü`       | `ue`        |
+| `ß`       | `ss`        |
+
+---
+
+## Step 1 — Derive Test Cases
+
+Derive test cases from the requirement. Depending on the chosen **format**, apply one of the following strategies:
 
 ### Format: Multi-Test (Standard)
 
-- Decke alle vom User gewählten Testarten ab (Positiv, Negativ, Grenzwerte, Kombinationen)
-- **Alle Schritte eines Testszenarios (Vorbedingungen + fachliche Aktion) gehören in die erste Tabellenzeile.** Folgezeilen mit gleicher TCID beschreiben **sequenzielle, aufbauende Schritte** — sie enthalten nur die **Delta-Aktion** (was sich gegenüber dem Vorgänger ändert), keinen wiederholten Setup.
-- Eine **neue TCID** entsteht nur, wenn der Test **von vorne beginnt** (neuer Kontext, komplett neues Setup). Sequenziell aufbauende Varianten (z.B. schrittweise veränderte Testdaten im gleichen Ablauf) bleiben in einer TCID.
-- **Es wird nur geprüft, was die Anforderung betrifft.** Vorbereitende Schritte (Anmelden, Navigation) sind keine eigenen Prüfschritte und erzeugen kein eigenes Erwartetes Ergebnis.
+- Cover all test types chosen by the user (positive, negative, boundary, combinations)
+- **All steps of a test scenario (preconditions + business action) go in the first table row.** Subsequent rows with the same TCID describe **sequential, building steps** — they contain only the **delta action** (what changes compared to the previous step), no repeated setup.
+- A **new TCID** is created only when the test **starts from scratch** (new context, completely new setup). Sequentially building variants (e.g., gradually changed test data in the same flow) remain in one TCID.
+- **Only what is relevant to the requirement is tested.** Preparatory steps (login, navigation) are not considered test steps and do not generate their own expected result.
 
-### Format: Single-Test
+### Format: Single Test
 
-- Es gibt genau **eine TCID** für die gesamte Anforderung.
-- Die erste Tabellenzeile enthält Vorbedingungen und den ersten Prüfschritt.
-- **Jede weitere zu prüfende Bedingung aus der Anforderung** wird eine eigene Folgezeile mit derselben TCID — die Aktion beschreibt die Delta-Aktion bzw. den nächsten Prüfschritt, das Erwartete Ergebnis das zugehörige Prüfergebnis.
-- Vorbereitende Schritte (Anmelden, Navigation) stehen nur in der ersten Zeile und erzeugen kein eigenes Erwartetes Ergebnis.
-- **Es wird nur geprüft, was die Anforderung betrifft.**
-
----
-
-## Step 2 — Markdown-Tabelle aufbauen (kein Chat-Output)
-
-> **Dieser Step wird intern ausgeführt — es erscheint keine Ausgabe im Chat.**
-
-**2a — Interne Markdown-Tabelle aufbauen**
-
-Baue die Testfälle als interne Markdown-Tabelle mit exakt diesen Spalten in dieser Reihenfolge auf:
-
-```
-TCID | tests | Zusammenfassung | Beschreibung | Aktion | Data | Erwartetes Ergebnis | Testplan | Autor | Stichwort | [Stichwort | ...] | Prio | Repo
-```
-
-> Jedes vom User angegebene Stichwort erhält eine eigene Spalte, alle mit der Überschrift **Stichwort**.
-
-Tabellenregeln:
-
-- **TCID**: Fortlaufende Nummer, startet bei `1`. Ein Testfall kann mehrere Zeilen haben — alle Zeilen desselben Tests erhalten dieselbe TCID.
-- **Metadaten-Regel**: Die Felder tests, Zusammenfassung, Beschreibung, Testplan, Autor, Stichwörter, Prio und Repo stehen **nur in der ersten Zeile** eines Tests — Folgezeilen dieser Spalten bleiben leer. Das Feld **Data** wird in jeder Zeile ausgefüllt (mindestens `-`).
-- **Zusammenfassung**: Format `<tests>: <kurze Testbeschreibung>` (z.B. `SPSH-234: Login mit gueltigen Daten`).
-- **Aktion**: Alle Schritte des Testszenarios, jeder präfixiert mit `# `. Beginnt mit Vorbereitungsschritten (Anmelden, Navigation), endet mit der fachlich relevanten Aktion. Beim Anmelde-Schritt steht **ausschließlich die Rollenbezeichnung** (z.B. `# Als Schuladmin anmelden`). **Niemals** Systemrechte oder Account-Details in die Aktion — diese gehören in **Data**. Unter-Schritte werden mit `## ` präfixiert.
-  Formatierungskonventionen (innerhalb der Aktion-Zelle, Schritte durch `<br>` getrennt):
-  - **Buttons** → `*...*`: z.B. `*Schliessen* klicken`
-  - **UI-Elemente, Eigennamen, Seitentitel** → `_..._`: z.B. `_Klassenverwaltung_ oeffnen`
-  - **Gesuchte Texte, Meldungen** → `_..._`: z.B. `_Erfolgsmeldung: Der Vorgang wurde ausgefuehrt._`
-- **Data**: Testdaten passend zum Aktionsschritt dieser Zeile. Wenn keine Daten relevant sind: `-`.
-- **Erwartetes Ergebnis**: Das fachlich relevante Prüfergebnis der Zeile, **ohne** `# ` Präfix. Pro Tabellenzeile genau ein Erwartetes Ergebnis — das des letzten anforderungsrelevanten Schritts.
+- There is exactly **one TCID** for the entire requirement.
+- The first table row contains preconditions and the first verification step.
+- **Each additional condition to be verified from the requirement** gets its own subsequent row with the same TCID — the action describes the delta action or the next verification step, the expected result the corresponding verification result.
+- Preparatory steps (login, navigation) appear only in the first row and do not generate their own expected result.
+- **Only what is relevant to the requirement is tested.** Preparatory steps (login, navigation) are not considered test steps and do not generate their own expected result.
 
 ---
 
-## Step 3 — Self-Check auf Markdown-Tabelle (intern — keine Ausgabe)
+## Step 2 — Build Markdown Table (no chat output)
 
-Prüfe die Markdown-Tabelle aus Step 2a intern und korrigiere Fehler, bevor mit Step 4 fortgefahren wird. Gib diesen Check **nicht** aus:
+> **This step is executed internally — no output appears in the chat.**
 
-- Die Spaltenanzahl ist in jeder Tabellenzeile konsistent
-- Metadaten (tests, Zusammenfassung, Beschreibung, Testplan, Autor, Stichwörter, Prio, Repo) stehen nur in der ersten Zeile je TCID — Folgezeilen dieser Spalten sind leer
-- Das Feld **Data** ist in jeder Zeile ausgefüllt (mindestens `-`)
-- Die Zusammenfassung folgt dem Format `<tests>: <kurze Testbeschreibung>`
-- TCIDs sind konsistent fortlaufend (1, 2, 3, …)
+**2a — Build Internal Markdown Table**
+
+Build the test cases as an internal Markdown table with exactly these columns in this order:
+
+```
+TCID | Tests | Summary | Description | Action | Data | Expected Result | Test Plan | Author | Keyword | [Keyword | ...] | Priority | Repository
+```
+
+> Each keyword specified by the user gets its own column, all using the header **Keyword**.
+
+Table Rules:
+
+- **TCID**: Sequential number, starting at `1`. A test case can have multiple rows — all rows of the same test get the same TCID.
+- **Metadata Rule**: The fields Tests, Summary, Description, Test Plan, Author, Keyword, Priority and Repository appear **only in the first row** of a test — subsequent rows of these columns remain empty. The **Data** field is filled in every row (at least `-`).
+- **Summary**: Format `<Tests>: <short test description>` (e.g., `SPSH-234: Login with valid data`).
+- **Action**: All steps of the test scenario, each prefixed with `# `. Starts with preparatory steps (login, navigation) and ends with the business-relevant action. In the login step, **only the role** is specified (e.g., `# Login as School Admin`). **Never** include system rights or account details in the action — these belong in **Data**. Sub-steps are prefixed with `## `.
+  Formatting conventions (within the Action cell, steps separated by `<br>`):
+  - **Buttons** → `*...*`: e.g., `*Close*` click
+  - **UI elements, proper names, page titles** → `_..._`: e.g., `_Class Management_` open
+  - **Searched texts, messages** → `_..._`: e.g., `_Success message: The operation was executed._`
+ **Data**: Test data relevant to the action step of the row. If no data is relevant: `-`.
+ **Expected Result**: The business-relevant verification result of the row, **without** `# ` prefix. Exactly one Expected Result per table row — that of the last business-relevant step.
 
 ---
 
-## Step 4 — Markdown-Datei speichern und Skript ausführen (kein Chat-Output)
+## Step 3 — Self-Check of Markdown Table (internal — no output)
 
-> **Dieser Step wird intern ausgeführt — es erscheint keine Ausgabe im Chat.**
+Check the Markdown table from Step 2a internally and correct errors before proceeding to Step 4. Do **not** output this check:
 
-**4a — Markdown-Datei speichern**
-
-Speichere die Markdown-Tabelle aus Step 2a mit `create_file` als:
-
-- **Pfad**: `.github/manual_tests/<TICKET-ID>-testfaelle.md`
-  - `<TICKET-ID>`: Ticket-ID in Originalschreibweise, z.B. `SPSH-3353`
-
-**4b — Skript aufrufen**
-
-Führe das Konvertierungsskript mit `run_in_terminal` aus:
-
-```
-python .github/scripts/md_to_csv.py .github/manual_tests/<TICKET-ID>-testfaelle.md --delete-input
-```
-
-- `--delete-input` löscht die Markdown-Zwischendatei nach erfolgreicher Konvertierung automatisch.
-- Prüfe den Exit-Code: Bei Fehler (Exit-Code ≠ 0) die Fehlermeldung aus stderr im Chat ausgeben und abbrechen.
+- The number of columns is consistent in each table row
+- Metadata (Tests, Summary, Description, Test Plan, Author, Keyword, Priority and Repository) appear only in the first row of each TCID — subsequent rows of these columns remain empty
+- The **Data** field is filled in every row (at least `-`)
+- The summary follows the format `<Tests>: <short test description>`
+- TCIDs are sequentially consistent (1, 2, 3, …)
+- Natural-language content in Summary, Action text, Data descriptions, and Expected Result is German (Deutsch); if not, rewrite before proceeding (technical strings remain unchanged)
 
 ---
 
-## Step 5 — Abschluss
+## Step 4 — Save Markdown File and Execute Script (No Chat Output)
 
-**Einzige Ausgabe im Chat** nach erfolgreichem Skript-Lauf:
+> **This step is executed internally — no output appears in the chat.**
 
-> CSV gespeichert: `.github/manual_tests/<TICKET-ID>-testfaelle.csv`
+**4a — Save Markdown File**
+
+Save the Markdown table from Step 2a with `create_file` as:
+
+-- **Path**: `.github/manual_tests/<TICKET-ID>-testcases.md`
+  - `<TICKET-ID>`: Ticket ID in original format, e.g., `SPSH-3353`
+
+**4b — Run Script**
+
+Run the conversion script with `run_in_terminal`:
+
+```
+python .github/scripts/md_to_csv.py .github/manual_tests/<TICKET-ID>-testcases.md --delete-input
+```
+
+- `--delete-input` automatically deletes the intermediate Markdown file after successful conversion.
+- Check the exit code: In case of an error (exit code ≠ 0), output the error message from stderr in the chat and abort.
+
+---
+
+## Step 5 — Completion
+
+**Only output in the chat** after successful script execution:
+
+> CSV saved: `.github/manual_tests/<TICKET-ID>-testcases.csv`
 
 ---
 
 ## When the Skill Cannot Proceed
 
-Stop und informiere den User, wenn:
-- Die Anforderung zu vage ist, um konkrete Testschritte abzuleiten — bitte um Präzisierung
-- Kein erwartetes Verhalten aus der Anforderung erkennbar ist — frage nach dem Akzeptanzkriterium
+Stop and inform the user if:
+- The requirement is too vague to derive concrete test steps — ask for clarification
+- No expected behavior can be inferred from the requirement — ask for the acceptance criteria

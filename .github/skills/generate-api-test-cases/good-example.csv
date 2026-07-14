@@ -1,4 +1,4 @@
-TCID;tests;Summary;Description;Action;Data;Expected Result;Test Plan;Author;Keyword;Keyword;Priority;Repository
+TCID;Tests;Summary;Description;Action;Data;Expected Result;Test Plan;Author;Keyword;Keyword;Priority;Repository
 1;SPSH-4001;SPSH-4001: POST /api/v1/persons – gueltiger Request;"Dieses Ticket dient dem Dev-Test-Team dazu, ihre Tests zu strukturieren und dokumentieren.
 Es wird ausfuehrlich auf DEV und MAIN getestet.
 Auf STAGE erfolgen ausgewaehlte Tests nur noch im Rahmen von Smoketests.

@@ -1,4 +1,4 @@
-﻿"TCID;""tests"";""Zusammenfassung"";""Beschreibung"";""Aktion"";""Data"";""Erwartetes Ergebnis"";""Testplan"";""Autor"";""Stichwort"";""Stichwort"";""Prio"";""Repo"""
+﻿"TCID;""Tests"";""Summary"";""Description"";""Action"";""Data"";""Expected Result"";""Test Plan"";""Author"";""Keyword"";""Keyword"";""Priority"";""Repository"""
 "1;""SPSH-1234"";""SPSH-1234: Schuladmin mit eingeschränktem Systemrecht legt neues Angebot an"";""Dieses Ticket dient dem Dev-Test-Team dazu, ihre Tests zu strukturieren und dokumentieren."
 Es wird ausführlich auf DEV und MAIN getestet.
 "Auf STAGE erfolgen ausgewählte Tests nur noch im Rahmen von Smoketests."";""# Als Landesadmin anmelden"
