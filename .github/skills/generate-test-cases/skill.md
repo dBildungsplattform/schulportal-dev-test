@@ -141,7 +141,7 @@ Check the Markdown table from Step 2a internally and correct errors before proce
 
 Save the Markdown table from Step 2a with `create_file` as:
 
--- **Path**: `.github/manual_tests/<TICKET-ID>-testcases.md`
+- **Path**: `.github/manual_tests/<TICKET-ID>-testcases.md`
   - `<TICKET-ID>`: Ticket ID in original format, e.g., `SPSH-3353`
 
 **4b — Run Script**
