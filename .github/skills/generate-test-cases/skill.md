@@ -112,9 +112,9 @@ Table Rules:
 - **Summary**: Format `<Tests>: <short test description>` (e.g., `SPSH-234: Login mit gueltigen Daten`).
 - **Action**: All steps of the test scenario, each prefixed with `# `. Starts with preparatory steps (login, navigation) and ends with the business-relevant action. In the login step, **only the role** is specified (e.g., `# Als Schuladmin anmelden`). **Never** include system rights or account details in the action — these belong in **Data**. Sub-steps are prefixed with `## `.
   Formatting conventions (within the Action cell, steps separated by `<br>`):
-  - **Buttons** → `*...*`: e.g., `*Close*` click
-  - **UI elements, proper names, page titles** → `_..._`: e.g., `_Class Management_` open
-  - **Searched texts, messages** → `_..._`: e.g., `_Success message: The operation was executed._`
+  - **Buttons** → `*...*`: e.g., `*Schliessen* klicken`
+  - **UI elements, proper names, page titles** → `_..._`: e.g., `_Klassenverwaltung_ oeffnen`
+  - **Searched texts, messages** → `_..._`: e.g., `_Erfolgsmeldung: Der Vorgang wurde ausgefuehrt._`
  **Data**: Test data relevant to the action step of the row. If no data is relevant: `-`.
  **Expected Result**: The business-relevant verification result of the row, **without** `# ` prefix. Exactly one Expected Result per table row — that of the last business-relevant step.
 
