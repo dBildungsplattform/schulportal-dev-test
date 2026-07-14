@@ -54,6 +54,9 @@ Das Repository enthält derzeit **eine Prompt-Vorlage** unter `.github/prompts/`
 
 Prompt-Vorlage zur strukturierten Erstellung von Testabdeckungs-Reports. Sie dient als Ausgangspunkt, um aus vorhandenen Testanforderungen nachvollziehbare Coverage-Übersichten abzuleiten.
 
+**Wo einsetzen:**
+Der Prompt wird im Repo Testautomatisierung ausgeführt. Dazu muss es den Ordner test_coverage\ mit der Datei testgegenstand.md geben. Wobei testgegenstand.md die Liste der Tests sein sollte, die automatisiert sein sollen. 
+
 **Wann einsetzen:**
 - Wenn ein Testabdeckungsreport für die automatisierten Tests erstellt werden soll
 - Wenn transparent dargestellt werden soll, welche Anforderungen bereits durch automatisierte Tests abgedeckt sind
