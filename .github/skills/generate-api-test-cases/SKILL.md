@@ -137,7 +137,7 @@ Technical strings remain unchanged (e.g., `POST`, `/api/v1/users`, `_Authorizati
 Build the test cases as an internal Markdown table with exactly these columns in this order:
 
 ```
-TCID | tests | Summary | Description | Action | Data | Expected Result | Test Plan | Author | Keyword | [Keyword | ...] | Priority | Repository
+TCID | Tests | Summary | Description | Action | Data | Expected Result | Test Plan | Author | Keyword | [Keyword | ...] | Priority | Repository
 ```
 
 > Each keyword specified by the user gets its own column, all using the header **Keyword**.
@@ -145,8 +145,8 @@ TCID | tests | Summary | Description | Action | Data | Expected Result | Test Pl
 Table Rules:
 
 - **TCID**: Sequential number, starting at `1`. A test case can have multiple rows — all rows of the same test get the same TCID.
-- **Metadata Rule**: The fields tests, Summary, Description, Test Plan, Author, Keyword, Priority and Repository appear **only in the first row** of a test — subsequent rows of these columns remain empty. The **Data** field is filled in every row (at least `-`).
-- **Summary**: Format `<tests>: <short test description>` (e.g., `SPSH-234: POST /api/v1/users – valid request`).
+- **Metadata Rule**: The fields Tests, Summary, Description, Test Plan, Author, Keyword, Priority and Repository appear **only in the first row** of a test — subsequent rows of these columns remain empty. The **Data** field is filled in every row (at least `-`).
+- **Summary**: Format `<Tests>: <short test description>` (e.g., `SPSH-234: POST /api/v1/users – gueltiger Request`).
 - **Action**: All steps of the test scenario, each prefixed with # . Starts with the authentication setup step and ends with the HTTP request. Sub-steps are prefixed with ## .
 
   Formatting conventions for API actions (steps within a cell separated by `<br>`):
@@ -175,9 +175,9 @@ Table Rules:
 Check the Markdown table from Step 2a internally and correct errors before proceeding to Step 4. Do **not** output this check:
 
 - The number of columns is consistent in each table row
-- Metadata (tests, summary, description, test plan, author, keywords, priority, repo) appear only in the first row of each TCID — subsequent rows of these columns remain empty
+- Metadata (Tests, Summary, Description, Test Plan, Author, Keyword, Priority, Repository) appear only in the first row of each TCID — subsequent rows of these columns remain empty
 - The **Data** field is filled in every row (at least `-`)
-- The summary follows the format `<tests>: <short test description>`
+- The summary follows the format `<Tests>: <short test description>` (e.g., `SPSH-234: POST /api/v1/users – gueltiger Request`)
 - TCIDs are sequentially consistent (1, 2, 3, …)
 - Each expected result begins with an HTTP status code (except for pure setup rows without a validation step)
 - Natural-language content in Summary, Action text, Data descriptions, and Expected Result is German (Deutsch); if not, rewrite before proceeding (technical strings like HTTP methods, endpoints, status codes, JSON keys, and header names remain unchanged)
@@ -192,7 +192,7 @@ Check the Markdown table from Step 2a internally and correct errors before proce
 
 Save the Markdown table from Step 2a with `create_file` as:
 
-- **Path**: `.github/manual_tests/<TICKET-ID>-testfaelle.md`
+- **Path**: `.github/manual_tests/<TICKET-ID>-testcases.md`
   - `<TICKET-ID>`: Ticket ID in original format, e.g., `SPSH-3353`
 
 **4b — Execute Script**
@@ -200,7 +200,7 @@ Save the Markdown table from Step 2a with `create_file` as:
 Run the conversion script with `run_in_terminal`:
 
 ```
-python .github/scripts/md_to_csv.py .github/manual_tests/<TICKET-ID>-testfaelle.md --delete-input
+python .github/scripts/md_to_csv.py .github/manual_tests/<TICKET-ID>-testcases.md --delete-input
 ```
 
 - `--delete-input` automatically deletes the intermediate Markdown file after successful conversion.
@@ -212,7 +212,7 @@ python .github/scripts/md_to_csv.py .github/manual_tests/<TICKET-ID>-testfaelle.
 
 **Only output in the chat** after successful script execution:
 
-> CSV saved: `.github/manual_tests/<TICKET-ID>-testfaelle.csv`
+> CSV saved: `.github/manual_tests/<TICKET-ID>-testcases.csv`
 
 ---
 

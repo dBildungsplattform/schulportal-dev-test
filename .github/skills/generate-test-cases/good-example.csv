@@ -1,4 +1,4 @@
-﻿TCID;tests;Zusammenfassung;Beschreibung;Aktion;Data;Erwartetes Ergebnis;Testplan;Autor;Stichwort;Stichwort;Prio;Repo;Stichwort
+﻿TCID;Tests;Summary;Description;Action;Data;Expected Result;Test Plan;Author;Keyword;Keyword;Priority;Repository;Keyword
 1;SPSH-3208;SPSH-3208: Aufräumen Kategorie für SP;"*Testdaten*
 * Angebote in allen Kategorien anlegen
 * Angebote einer Benutzerin zuweisen (über Rolle)
