@@ -109,8 +109,8 @@ Table Rules:
 
 - **TCID**: Sequential number, starting at `1`. A test case can have multiple rows — all rows of the same test get the same TCID.
 - **Metadata Rule**: The fields Tests, Summary, Description, Test Plan, Author, Keyword, Priority and Repository appear **only in the first row** of a test — subsequent rows of these columns remain empty. The **Data** field is filled in every row (at least `-`).
-- **Summary**: Format `<Tests>: <short test description>` (e.g., `SPSH-234: Login with valid data`).
-- **Action**: All steps of the test scenario, each prefixed with `# `. Starts with preparatory steps (login, navigation) and ends with the business-relevant action. In the login step, **only the role** is specified (e.g., `# Login as School Admin`). **Never** include system rights or account details in the action — these belong in **Data**. Sub-steps are prefixed with `## `.
+- **Summary**: Format `<Tests>: <short test description>` (e.g., `SPSH-234: Login mit gueltigen Daten`).
+- **Action**: All steps of the test scenario, each prefixed with `# `. Starts with preparatory steps (login, navigation) and ends with the business-relevant action. In the login step, **only the role** is specified (e.g., `# Als Schuladmin anmelden`). **Never** include system rights or account details in the action — these belong in **Data**. Sub-steps are prefixed with `## `.
   Formatting conventions (within the Action cell, steps separated by `<br>`):
   - **Buttons** → `*...*`: e.g., `*Close*` click
   - **UI elements, proper names, page titles** → `_..._`: e.g., `_Class Management_` open
