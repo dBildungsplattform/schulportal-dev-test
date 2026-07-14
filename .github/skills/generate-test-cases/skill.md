@@ -81,7 +81,7 @@ Derive test cases from the requirement. Depending on the chosen **format**, appl
 - A **new TCID** is created only when the test **starts from scratch** (new context, completely new setup). Sequentially building variants (e.g., gradually changed test data in the same flow) remain in one TCID.
 - **Only what is relevant to the requirement is tested.** Preparatory steps (login, navigation) are not considered test steps and do not generate their own expected result.
 
-### Format: Single Test
+### Format: Single-Test
 
 - There is exactly **one TCID** for the entire requirement.
 - The first table row contains preconditions and the first verification step.
