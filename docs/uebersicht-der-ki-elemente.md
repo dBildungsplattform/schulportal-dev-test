@@ -1,6 +1,6 @@
 # Übersicht der KI-Skills und Agenten
 
-> Stand: 19.06.2026
+> Stand: 14.07.2026
 
 ## Skills
 
