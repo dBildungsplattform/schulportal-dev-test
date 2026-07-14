@@ -5,198 +5,219 @@ description: 'Derives manual test cases for backend/API tickets and saves them a
 
 # Generate API Test Cases
 
-Dieser Skill leitet aus einer Backend-Anforderung manuelle API-Testfälle ab und speichert sie direkt als **CSV-Datei für den Xray-Import**. Die Tests beschreiben HTTP-Aufrufe (Methode, Endpoint, Request-Body, Statuscodes) — nicht UI-Interaktionen. Im Chat erscheint kein Markdown und keine Tabelle — einziges Ergebnis ist die gespeicherte CSV-Datei.
+This skill generates manual API test cases based on a backend request and saves them directly as a **CSV file for Xray import**. The tests describe HTTP calls (method, endpoint, request body, status codes)—not UI interactions. No Markdown or table appears in the chat—the only result is the saved CSV file.
 
 ## Use When
-- Du sollst Testfälle für ein Backend-Ticket, einen REST-Endpoint oder eine API-Anforderung erstellen
-- Das Testen erfolgt über Swagger (`/docs`), einen REST-Client (z.B. Postman, curl) oder direkte HTTP-Aufrufe
-- Es gibt (noch) kein Frontend für den zu testenden Funktionsbereich
+- You should create test cases for a backend ticket, a REST endpoint, or an API requirement
+- Testing is done via Swagger (`/docs`), a REST client (e.g., Postman, curl), or direct HTTP calls
+- There is (still) no frontend for the functional area to be tested
 
 ## Do Not Use When
-- Es sollen UI-Tests erstellt werden → nutze `generate-test-cases`
-- Es sollen Playwright-/automatisierte Tests in TypeScript geschrieben werden (normaler Coding-Workflow)
-- Es wird nur eine Erklärung oder Analyse einer Anforderung gewünscht, keine Testfälle
-- Es sollen Gherkin-Tests geschrieben werden
+- UI tests need to be created → use `generate-test-cases`
+- Playwright/automated tests need to be written in TypeScript (standard coding workflow)
+- Only an explanation or analysis of a requirement is needed, not test cases
+- Gherkin tests need to be written
 
 ---
 
-## Step 0 — Kontext sammeln (einmalig je Aufgabe)
+## Step 0 — Gather Context (once per task)
 
-**Schritt 1 — Format per Tool abfragen**
+**Step 1 — Ask for format via tool**
 
-Nutze das `vscode_askQuestions`-Tool und stelle genau diese **eine** Frage:
+Use the `vscode_askQuestions` tool and ask exactly this **one** question:
 
-- **Frage**: "Wie sollen die Testfälle strukturiert werden?"
-- **Optionen** (Einzelauswahl, kein Freitext):
-  - **Multi-Test** — Jedes Szenario bekommt eine eigene TCID
-  - **Single-Test** — Alle Prüfungen in einem einzigen Testfall; jede Prüfung wird ein eigener Testschritt
+- **Question**: "How should the test cases be structured?"
+- **Options** (single choice, no free text):
+  - **Multi-Test** — Each scenario gets its own TCID
+  - **Single-Test** — All checks in a single test case; each check is its own test step
 
-Warte auf die Antwort, bevor du fortfährst.
+Wait for the response before proceeding.
 
-**Schritt 2 — API-Details und Metadaten im Chat erfragen**
+**Step 2 — Ask for API details and metadata in the chat**
 
-Stelle dem User im Chat folgende Fragen als formatierte Liste. Warte auf die Antwort, bevor du fortfährst:
+Ask the user the following questions as a formatted list in the chat. Wait for the response before proceeding:
 
-1. **Anforderung**: Was soll getestet werden? (User Story, Freitext, Ticket-Inhalt, OpenAPI-Auszug)
-2. **Endpoint(s)**: HTTP-Methode und Pfad, z.B. `POST /api/v1/users` — kann auch mehrere sein
-3. **Auth-Typ**: Wie wird sich authentifiziert?
+1. Requirement: What should be tested? (User Story, free-text requirement, ticket content, OpenAPI excerpt)
+2. **Endpoint(s)**: HTTP method and path, e.g., `POST /api/v1/users` — can be multiple
+3. **Auth-Typ**: How is authentication handled?
    - Bearer Token (JWT)
    - Basic Auth
-   - Kein Auth erforderlich
-   - Sonstiges (bitte beschreiben)
-4. **Testtiefe**: Welche Testarten sollen abgedeckt werden? (Mehrfachauswahl möglich)
-   - Positiv-Tests (HTTP 2xx, Happy Path)
-   - Negativ-Tests (ungültige Eingaben, fehlende Pflichtfelder, HTTP 4xx)
-   - Auth-Szenarien (kein Token, abgelaufener Token, falsche Rolle → HTTP 401/403)
-   - Grenzwert-Tests (leere Strings, Maximalwerte, Sonderzeichen)
-   - Kombinationen der obigen
-5. **Metadaten** für alle Testfälle dieser Aufgabe:
-   - **Tests** (Ticket-ID, z.B. `"SPSH-234"`)
-   - **Beschreibung** (z.B. `"Test aus Playwright importiert."`)
-   - **Testplan** (Ticket-ID des zugehörigen Testplans, z.B. `"SPSH-3163"`)
-   - **Stichwörter** (eine oder mehrere, z.B. `"DevTest21"`, `"Beschrieben"` — jedes Stichwort ergibt eine eigene Spalte)
-   - **Autor** (z.B. `"silvia.grosche"`)
-   - **Repo** (z.B. `"Devtest/Sprint 21"`)
-   - **Prio** (`"low"`, `"medium"` oder `"high"`)
+   - No Auth required
+   - Other (please describe)
+4. **Test Depth**: Which test types should be covered? (Multiple selections possible)
+   - Positive tests (HTTP 2xx, happy path)
+   - Negative tests (invalid inputs, missing mandatory fields, HTTP 4xx)
+   - Authentication scenarios (no token, expired token, wrong role → HTTP 401/403)
+   - Boundary value tests (empty strings, maximum values, special characters)
+   - Any combination of the above
+5. **Metadata** for all test cases in this task:
+   - **Tests** (Ticket-ID, e.g., `"SPSH-234"`)
+   - **Description** (e.g., `"Test imported from Playwright."`)
+   - **Test Plan** (Ticket-ID of the associated test plan, e.g., `"SPSH-3163"`)
+   - **Keyword** (one or more, e.g., `"DevTest21"`, `"Described"` — each tag gets its own column)
+   - **Author** (e.g., `"silvia.grosche"`)
+   - **Repository** (e.g., `"Devtest/Sprint 21"`)
+   - **Priority** (one of `"low"`, `"medium"` or `"high"`)
 
-> **Fahre erst fort, wenn alle Angaben vorliegen.**
-
----
-
-## Step 0b — Anforderungstext vorverarbeiten (intern — keine Ausgabe)
-
-Ersetze in der gegebenen Anforderung die folgenden Zeichen, bevor du Testfälle ableitest. Dieser Schritt gilt für den gesamten Anforderungstext inkl. Akzeptanzkriterien und Scope. Gib das Ergebnis **nicht** aus.
-
-| Zeichen | Ersetzung |
-|---------|-----------|
-| `"`     | `'`       |
-| `ä`     | `ae`      |
-| `ö`     | `oe`      |
-| `ü`     | `ue`      |
-| `ß`     | `ss`      |
+> **Do not proceed until all information has been provided.**
 
 ---
 
-## Step 1 — Testfälle ableiten
+## Step 0b — Preprocess Requirement Text (internal — no output)
 
-Leite aus der Anforderung API-Testfälle ab. Wende je nach gewähltem **Format** eine der beiden folgenden Strategien an:
+Replace the following characters in the given requirement before deriving test cases. This step applies to the entire requirement text, including acceptance criteria and scope. Do not output the result.
+
+| Character | Replacement |
+|-----------|-------------|
+| `"`       | `'`         |
+| `ä`       | `ae`        |
+| `ö`       | `oe`        |
+| `ü`       | `ue`        |
+| `ß`       | `ss`        |
+
+---
+
+## Step 1 — Derive Test Cases
+
+Derive API test cases from the requirement. Depending on the selected Format, apply one of the following strategies:
+
+### Language Rule
+
+All generated test case content must be written in German (Deutsch), including:
+- Summary
+- Action
+- Data (except technical values like JSON keys, endpoints, and HTTP methods)
+- Expected Result
+
+Keep technical terms such as HTTP methods, endpoint paths, status codes, JSON keys, and header names in their original technical form.
 
 ### Format: Multi-Test (Standard)
 
-- Decke alle vom User gewählten Testarten ab (Positiv, Negativ, Auth, Grenzwerte)
-- **Alle Schritte eines Testszenarios gehören in die erste Tabellenzeile.** Folgezeilen mit gleicher TCID beschreiben **sequenzielle, aufbauende Schritte** innerhalb desselben Szenarios — sie enthalten nur die Delta-Aktion.
-- Eine **neue TCID** entsteht nur, wenn der Test **von vorne beginnt** (anderer Auth-Kontext, anderer Request-Body-Typ, komplett anderes Szenario).
-- **Es wird nur geprüft, was die Anforderung betrifft.** Setup-Schritte (Token holen) sind keine eigenen Prüfschritte.
-- **Auth-Negativ-Szenarien** (kein Token, falsche Rolle) sind eigene TCIDs.
+- Cover all test types selected by the user (positive, negative, auth, boundary)
+- **All steps of a test scenario must be in the first table row.** Subsequent rows with the same TCID describe **sequential, building steps** within the same scenario — they contain only the delta action.
+- A **new TCID** is created only when the test **starts from scratch** (different auth context, different request body type, completely different scenario).
+- **Only what the requirement concerns is tested.** Setup steps (getting a token) are not separate test steps.
+- **Auth negative scenarios** (no token, wrong role) are separate TCIDs.
 
 ### Format: Single-Test
 
-- Es gibt genau **eine TCID** für die gesamte Anforderung.
-- Die erste Tabellenzeile enthält den Setup-Schritt und den ersten Prüfschritt.
-- Jede weitere zu prüfende Bedingung wird eine eigene Folgezeile mit derselben TCID.
-- Setup-Schritte (Token holen) stehen nur in der ersten Zeile und erzeugen kein eigenes Erwartetes Ergebnis.
+- There is exactly **one TCID** for the entire requirement.
+- The first row contains the setup step and the first verification step.
+- Each additional condition to verify is represented by a follow-up row with the same TCID.
+- Setup steps (e.g. obtaining a token) appear only in the first row and do not generate    their own expected result.
 
-### API-spezifische Ableitungsregeln
+### API-Specific Derivation Rules
 
-- **Happy Path zuerst**: Beginne mit dem erfolgreichen Aufruf (2xx).
-- **Negativ-Tests**: Leite Fehlerfälle direkt aus der Anforderung ab — fehlende Pflichtfelder, ungültige Typen, falsche Werte.
-- **Auth-Szenarien** (wenn gewählt): Erstelle eigene TCIDs für:
-  - Kein Token → HTTP 401
-  - Abgelaufener/ungültiger Token → HTTP 401
-  - Token mit falscher Rolle / fehlendem Recht → HTTP 403
-- **Grenzwert-Tests**: Leere Strings, `null`, Maximalwerte, Sonderzeichen als Request-Body in Data.
+- **Happy Path first**: Start with the successful call (2xx).
+- **Negative Tests**: Derive error cases directly from the requirement — missing mandatory fields, invalid types, incorrect values.
+- **Auth Scenarios** (if selected): Create separate TCIDs for:
+  - No token → HTTP 401
+  - Expired/invalid token → HTTP 401
+  - Token with wrong role / missing permission → HTTP 403
+- **Boundary Tests**: Empty strings, `null`, maximum values, special characters as request body in Data.
 
 ---
 
-## Step 2 — Markdown-Tabelle aufbauen (kein Chat-Output)
+## Step 2 — Build Markdown Table (No Chat Output)
 
-> **Dieser Step wird intern ausgeführt — es erscheint keine Ausgabe im Chat.**
+> **This step is executed internally — no output appears in the chat.**
 
-**2a — Interne Markdown-Tabelle aufbauen**
+### Language Rule (Validation)
 
-Baue die Testfälle als interne Markdown-Tabelle mit exakt diesen Spalten in dieser Reihenfolge auf:
+Ensure all natural-language content in table cells is German (Deutsch):
+- Summary
+- Action text
+- Data descriptions
+- Expected Result
+
+Technical strings remain unchanged (e.g., `POST`, `/api/v1/users`, `_Authorization_`, `_id_`, `HTTP 400`).
+
+**2a — Build Internal Markdown Table**
+
+Build the test cases as an internal Markdown table with exactly these columns in this order:
 
 ```
-TCID | tests | Zusammenfassung | Beschreibung | Aktion | Data | Erwartetes Ergebnis | Testplan | Autor | Stichwort | [Stichwort | ...] | Prio | Repo
+TCID | tests | Summary | Description | Action | Data | Expected Result | Test Plan | Author | Keyword | [Keyword | ...] | Priority | Repository
 ```
 
-> Jedes vom User angegebene Stichwort erhält eine eigene Spalte, alle mit der Überschrift **Stichwort**.
+> Each keyword specified by the user gets its own column, all using the header **Keyword**.
 
-Tabellenregeln:
+Table Rules:
 
-- **TCID**: Fortlaufende Nummer, startet bei `1`. Ein Testfall kann mehrere Zeilen haben — alle Zeilen desselben Tests erhalten dieselbe TCID.
-- **Metadaten-Regel**: Die Felder tests, Zusammenfassung, Beschreibung, Testplan, Autor, Stichwörter, Prio und Repo stehen **nur in der ersten Zeile** eines Tests — Folgezeilen dieser Spalten bleiben leer. Das Feld **Data** wird in jeder Zeile ausgefüllt (mindestens `-`).
-- **Zusammenfassung**: Format `<tests>: <kurze Testbeschreibung>` (z.B. `SPSH-234: POST /api/v1/users – gueltiger Request`).
-- **Aktion**: Alle Schritte des Testszenarios, jeder präfixiert mit `# `. Beginnt mit dem Auth-Setup-Schritt, endet mit dem HTTP-Aufruf. Unter-Schritte werden mit `## ` präfixiert.
+- **TCID**: Sequential number, starting at `1`. A test case can have multiple rows — all rows of the same test get the same TCID.
+- **Metadata Rule**: The fields tests, Summary, Description, Test Plan, Author, Keyword, Priority and Repository appear **only in the first row** of a test — subsequent rows of these columns remain empty. The **Data** field is filled in every row (at least `-`).
+- **Summary**: Format `<tests>: <short test description>` (e.g., `SPSH-234: POST /api/v1/users – valid request`).
+- **Action**: All steps of the test scenario, each prefixed with # . Starts with the authentication setup step and ends with the HTTP request. Sub-steps are prefixed with ## .
 
-  Formatierungskonventionen für API-Aktionen (Schritte innerhalb einer Zelle durch `<br>` getrennt):
-  - **HTTP-Methoden** → `*GET*`, `*POST*`, `*PUT*`, `*PATCH*`, `*DELETE*`: z.B. `*POST* _/api/v1/users_ aufrufen`
-  - **Endpfade / URL-Segmente** → `_..._`: z.B. `_/api/v1/users/{id}_`
-  - **Header-Namen** → `_..._`: z.B. `_Authorization_`-Header setzen
-  - **Response-Felder / JSON-Keys** → `_..._`: z.B. Response enthaelt `_id_`
-  - **Auth-Setup-Schritt**: `# Bearer Token setzen (Daten)` — der konkrete Token/Account steht in **Data**
-  - **Kein-Auth-Szenario**: `# Aufruf ohne _Authorization_-Header`
+  Formatting conventions for API actions (steps within a cell separated by `<br>`):
+  - **HTTP methods** → `*GET*`, `*POST*`, `*PUT*`, `*PATCH*`, `*DELETE*`: e.g., `*POST* _/api/v1/users_`
+  - **Endpoints / URL segments** → `_..._`: e.g., `_/api/v1/users/{id}_`
+  - **Header names** → `_..._`: e.g., `_Authorization_` header
+  - **Response fields / JSON keys** → `_..._`: e.g., response contains `_id_`
+  - **Auth setup step**: `# Set bearer token (data)` — the actual token/account is in **Data**
+  - **No-auth scenario**: `# Call without _Authorization_ header`
 
-- **Data**: Testdaten passend zum Aktionsschritt dieser Zeile. Enthält:
-  - Bearer Token / Rolle / Account-Beschreibung beim Auth-Setup-Schritt
-  - Request-Body (JSON oder Feldliste) beim HTTP-Aufruf-Schritt
-  - Query-Parameter / Path-Parameter wenn relevant
-  - `-` wenn keine Daten relevant sind
-- **Erwartetes Ergebnis**: HTTP-Statuscode + fachliches Prüfergebnis, z.B.:
-  - `HTTP 201 – Response enthaelt _id_ der angelegten Ressource`
-  - `HTTP 400 – Validierungsfehler: _name_ ist Pflichtfeld`
-  - `HTTP 401 – Zugriff verweigert (kein Token)`
-  - `HTTP 403 – Zugriff verweigert (fehlende Berechtigung)`
-
----
-
-## Step 3 — Self-Check auf Markdown-Tabelle (intern — keine Ausgabe)
-
-Prüfe die Markdown-Tabelle aus Step 2a intern und korrigiere Fehler, bevor mit Step 4 fortgefahren wird. Gib diesen Check **nicht** aus:
-
-- Die Spaltenanzahl ist in jeder Tabellenzeile konsistent
-- Metadaten (tests, Zusammenfassung, Beschreibung, Testplan, Autor, Stichwörter, Prio, Repo) stehen nur in der ersten Zeile je TCID — Folgezeilen dieser Spalten sind leer
-- Das Feld **Data** ist in jeder Zeile ausgefüllt (mindestens `-`)
-- Die Zusammenfassung folgt dem Format `<tests>: <kurze Testbeschreibung>`
-- TCIDs sind konsistent fortlaufend (1, 2, 3, …)
-- Jedes Erwartetes Ergebnis beginnt mit einem HTTP-Statuscode (außer bei reinen Setup-Zeilen ohne Prüfschritt)
+- **Data**: Test data relevant to the action step of the row. Contains:
+  - Bearer token / role / account description for the auth setup step
+  - Request body (JSON or field list) for the HTTP request step
+  - Query parameters / path parameters when relevant
+  - `-` if no data is relevant
+- **Expected Result**: HTTP status code + business validation result, e.g.:
+  - `HTTP 201 – Response contains _id_ of the created resource`
+  - `HTTP 400 – Validation error: _name_ is required`
+  - `HTTP 401 – Access denied (no token)`
+  - `HTTP 403 – Access denied (missing permission)`
 
 ---
 
-## Step 4 — Markdown-Datei speichern und Skript ausführen (kein Chat-Output)
+## Step 3 — Self-Check of Markdown Table (internal — no output)
 
-> **Dieser Step wird intern ausgeführt — es erscheint keine Ausgabe im Chat.**
+Check the Markdown table from Step 2a internally and correct errors before proceeding to Step 4. Do **not** output this check:
 
-**4a — Markdown-Datei speichern**
+- The number of columns is consistent in each table row
+- Metadata (tests, summary, description, test plan, author, keywords, priority, repo) appear only in the first row of each TCID — subsequent rows of these columns remain empty
+- The **Data** field is filled in every row (at least `-`)
+- The summary follows the format `<tests>: <short test description>`
+- TCIDs are sequentially consistent (1, 2, 3, …)
+- Each expected result begins with an HTTP status code (except for pure setup rows without a validation step)
+- Natural-language content in Summary, Action text, Data descriptions, and Expected Result is German (Deutsch); if not, rewrite before proceeding (technical strings like HTTP methods, endpoints, status codes, JSON keys, and header names remain unchanged)
 
-Speichere die Markdown-Tabelle aus Step 2a mit `create_file` als:
+---
 
-- **Pfad**: `.github/manual_tests/<TICKET-ID>-testfaelle.md`
-  - `<TICKET-ID>`: Ticket-ID in Originalschreibweise, z.B. `SPSH-3353`
+## Step 4 — Save Markdown File and Execute Script (No Chat Output)
 
-**4b — Skript aufrufen**
+> **This step is executed internally — no output appears in the chat.**
 
-Führe das Konvertierungsskript mit `run_in_terminal` aus:
+**4a — Save Markdown File**
+
+Save the Markdown table from Step 2a with `create_file` as:
+
+- **Path**: `.github/manual_tests/<TICKET-ID>-testfaelle.md`
+  - `<TICKET-ID>`: Ticket ID in original format, e.g., `SPSH-3353`
+
+**4b — Execute Script**
+
+Run the conversion script with `run_in_terminal`:
 
 ```
 python .github/scripts/md_to_csv.py .github/manual_tests/<TICKET-ID>-testfaelle.md --delete-input
 ```
 
-- `--delete-input` löscht die Markdown-Zwischendatei nach erfolgreicher Konvertierung automatisch.
-- Prüfe den Exit-Code: Bei Fehler (Exit-Code ≠ 0) die Fehlermeldung aus stderr im Chat ausgeben und abbrechen.
+- `--delete-input` automatically deletes the intermediate Markdown file after successful conversion.
+- Check the exit code: In case of an error (exit code ≠ 0), output the error message from stderr in the chat and abort.
 
 ---
 
-## Step 5 — Abschluss
+## Step 5 — Completion
 
-**Einzige Ausgabe im Chat** nach erfolgreichem Skript-Lauf:
+**Only output in the chat** after successful script execution:
 
-> CSV gespeichert: `.github/manual_tests/<TICKET-ID>-testfaelle.csv`
+> CSV saved: `.github/manual_tests/<TICKET-ID>-testfaelle.csv`
 
 ---
 
 ## When the Skill Cannot Proceed
 
-Stop und informiere den User, wenn:
-- Die Anforderung zu vage ist, um konkrete HTTP-Aufrufe abzuleiten — bitte um Endpoint und erwartetes Verhalten
-- Kein erwartetes Verhalten (Statuscode / Response-Body) aus der Anforderung erkennbar ist — frage nach dem Akzeptanzkriterium
+Stop and inform the user if:
+- The request is too vague to derive concrete HTTP calls — ask for the endpoint and expected behavior
+- No expected behavior (status code / response body) can be inferred from the request — ask for the acceptance criteria
