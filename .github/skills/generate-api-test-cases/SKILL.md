@@ -146,7 +146,7 @@ Table Rules:
 
 - **TCID**: Sequential number, starting at `1`. A test case can have multiple rows — all rows of the same test get the same TCID.
 - **Metadata Rule**: The fields Tests, Summary, Description, Test Plan, Author, Keyword, Priority and Repository appear **only in the first row** of a test — subsequent rows of these columns remain empty. The **Data** field is filled in every row (at least `-`).
-- **Summary**: Format `<Tests>: <short test description>` (e.g., `SPSH-234: POST /api/v1/users – valid request`).
+- **Summary**: Format `<Tests>: <short test description>` (e.g., `SPSH-234: POST /api/v1/users – gueltiger Request`).
 - **Action**: All steps of the test scenario, each prefixed with # . Starts with the authentication setup step and ends with the HTTP request. Sub-steps are prefixed with ## .
 
   Formatting conventions for API actions (steps within a cell separated by `<br>`):
