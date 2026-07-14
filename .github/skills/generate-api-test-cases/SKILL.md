@@ -177,7 +177,7 @@ Check the Markdown table from Step 2a internally and correct errors before proce
 - The number of columns is consistent in each table row
 - Metadata (Tests, Summary, Description, Test Plan, Author, Keyword, Priority, Repository) appear only in the first row of each TCID — subsequent rows of these columns remain empty
 - The **Data** field is filled in every row (at least `-`)
-- The summary follows the format `<Tests>: <short test description>` (e.g., `SPSH-234: Login with valid data`)
+- The summary follows the format `<Tests>: <short test description>` (e.g., `SPSH-234: POST /api/v1/users – gueltiger Request`)
 - TCIDs are sequentially consistent (1, 2, 3, …)
 - Each expected result begins with an HTTP status code (except for pure setup rows without a validation step)
 - Natural-language content in Summary, Action text, Data descriptions, and Expected Result is German (Deutsch); if not, rewrite before proceeding (technical strings like HTTP methods, endpoints, status codes, JSON keys, and header names remain unchanged)
