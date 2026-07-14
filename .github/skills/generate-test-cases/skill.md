@@ -87,7 +87,7 @@ Derive test cases from the requirement. Depending on the chosen **format**, appl
 - The first table row contains preconditions and the first verification step.
 - **Each additional condition to be verified from the requirement** gets its own subsequent row with the same TCID — the action describes the delta action or the next verification step, the expected result the corresponding verification result.
 - Preparatory steps (login, navigation) appear only in the first row and do not generate their own expected result.
-- **Only what is relevant to the requirement is tested.** Preparatory steps (login, navigation) are not considered test steps and do not generate their own expected result.
+- **Only what is relevant to the requirement is tested.**
 
 ---
 
