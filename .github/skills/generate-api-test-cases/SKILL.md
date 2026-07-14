@@ -158,10 +158,10 @@ Table Rules:
   - **No-auth scenario**: `# Call without _Authorization_ header`
 
 - **Data**: Test data relevant to the action step of the row. Contains:
--  - Bearer token / role / account description for the auth setup step
--  - Request body (JSON or field list) for the HTTP request step
--  - Query parameters / path parameters when relevant
--  - `-` if no data is relevant
+  - Bearer token / role / account description for the auth setup step
+  - Request body (JSON or field list) for the HTTP request step
+  - Query parameters / path parameters when relevant
+  - `-` if no data is relevant
 - **Expected Result**: HTTP status code + business validation result, e.g.:
   - `HTTP 201 – Response contains _id_ of the created resource`
   - `HTTP 400 – Validation error: _name_ is required`
