@@ -45,7 +45,6 @@ Ask the user the following questions in the chat as a formatted list. Wait for t
    - Combinations of the above
 3. **Metadata** for all test cases of this task:
    - **Tests** (ticket ID, e.g., `"SPSH-234"`)
-   - **Description** (e.g., `"Test imported from Playwright."`)
    - **Test plan** (ticket ID of the associated test plan, e.g., `"SPSH-3163"`)
    - **Keywords** (one or more, e.g., `"Automated"`, `"Described"` — each keyword gets its own column in the table)
    - **Author** (e.g., `"silvia.grosche"`)
@@ -118,6 +117,16 @@ Table Rules:
  **Data**: Test data relevant to the action step of the row. If no data is relevant: `-`.
  **Expected Result**: The business-relevant verification result of the row, **without** `# ` prefix. Exactly one Expected Result per table row — that of the last business-relevant step.
 
+**2b — Generate Description Automatically**
+
+For each TCID, generate the Description field (first row only) from the derived test cases:
+- Start with the prefix: `In diesem Ticket wird geprüft:`
+- Extract the core verification from each test case (based on Summary and/or Expected Result)
+- Each verification is a bullet point prefixed with `<br>- `
+- The bullet points should be concise, verb-led statements in German
+- Example: `In diesem Ticket wird geprüft:<br>- Gueltigen Login mit korrekten Zugangsdaten<br>- Fehlgeschlagenen Login mit falschem Passwort<br>- Passwort-Zuruecksetzung ueber E-Mail`
+- This value replaces the Description field in the first row of each TCID
+
 ---
 
 ## Step 3 — Self-Check of Markdown Table (internal — no output)
@@ -129,6 +138,7 @@ Check the Markdown table from Step 2a internally and correct errors before proce
 - The **Data** field is filled in every row (at least `-`)
 - The summary follows the format `<Tests>: <short test description>`
 - TCIDs are sequentially consistent (1, 2, 3, …)
+- Description starts with `In diesem Ticket wird geprüft:` and is followed by bullet points in `<br>- ` format
 - Natural-language content in Summary, Action text, Data descriptions, and Expected Result is German (Deutsch); if not, rewrite before proceeding (technical strings remain unchanged)
 
 ---

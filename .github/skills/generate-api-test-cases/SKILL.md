@@ -167,6 +167,16 @@ Table Rules:
   - `HTTP 401 – Access denied (no token)`
   - `HTTP 403 – Access denied (missing permission)`
 
+**2b — Generate Description Automatically**
+
+For each TCID, generate the Description field (first row only) from the derived test cases:
+- Start with the prefix: `In diesem Ticket wird geprüft:`
+- Extract the core verification from each test case (based on Summary and/or Expected Result)
+- Each verification is a bullet point prefixed with `<br>- `
+- The bullet points should be concise, verb-led statements in German
+- Example: `In diesem Ticket wird geprüft:<br>- Gueltige POST-Anfrage an _/api/v1/persons_ (HTTP 201)<br>- Validierungsfehler bei fehlenden Pflichtfeldern (HTTP 400)<br>- Zugriff ohne Token wird abgelehnt (HTTP 401)<br>- Zugriff mit fehlender Berechtigung wird abgelehnt (HTTP 403)`
+- This value replaces the Description field in the first row of each TCID
+
 ---
 
 ## Step 3 — Self-Check of Markdown Table (internal — no output)
@@ -178,6 +188,7 @@ Check the Markdown table from Step 2a internally and correct errors before proce
 - The **Data** field is filled in every row (at least `-`)
 - The summary follows the format `<Tests>: <short test description>` (e.g., `SPSH-234: POST /api/v1/users – gueltiger Request`)
 - TCIDs are sequentially consistent (1, 2, 3, …)
+- Description starts with `In diesem Ticket wird geprüft:` and is followed by bullet points in `<br>- ` format
 - Each expected result begins with an HTTP status code (except for pure setup rows without a validation step)
 - Natural-language content in Summary, Action text, Data descriptions, and Expected Result is German (Deutsch); if not, rewrite before proceeding (technical strings like HTTP methods, endpoints, status codes, JSON keys, and header names remain unchanged)
 
