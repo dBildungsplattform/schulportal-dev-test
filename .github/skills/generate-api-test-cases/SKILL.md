@@ -52,7 +52,6 @@ Ask the user the following questions as a formatted list in the chat. Wait for t
    - Any combination of the above
 5. **Metadata** for all test cases in this task:
    - **Tests** (Ticket-ID, e.g., `"SPSH-234"`)
-   - **Description** (e.g., `"Test imported from Playwright."`)
    - **Test Plan** (Ticket-ID of the associated test plan, e.g., `"SPSH-3163"`)
    - **Keyword** (one or more, e.g., `"DevTest21"`, `"Described"` — each tag gets its own column)
    - **Author** (e.g., `"silvia.grosche"`)

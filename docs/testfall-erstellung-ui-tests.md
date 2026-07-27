@@ -30,7 +30,7 @@ Bevor du Copilot anweist, Testfälle zu erstellen, solltest du folgende Informat
 | **Beschreibung**| `"Test aus Playwright importiert."`       | Kurze Beschreibung für alle Testfälle dieser Aufgabe  |
 | **Testplan**   | `SPSH-3163`                                | Ticket-ID des zugehörigen Testplans in Jira           |
 | **Stichwörter**| `Automatisiert`, `Beschrieben`             | Xray-Labels; jedes Stichwort wird eine eigene Spalte  |
-| **Autor**      | `silvia.grosche`                           | Jira-Benutzername                                     |
+| **Autor**      | `susi.sonnenschein`                           | Jira-Benutzername                                     |
 | **Repo**       | `Automatisierung/Navigieren`               | Pfad im Repo, dem die Testfälle thematisch zugeordnet sind |
 | **Prio**       | `low` / `medium` / `high`                 | Priorität der Testfälle                               |
 
