@@ -1,0 +1,77 @@
+{
+  "testPlan": "SPSH-3210",
+  "author": "silvia.grosche",
+  "repository": "Devtest/Sprint 21",
+  "priority": "medium",
+  "keywords": ["DevTest21", "Beschrieben"],
+  "cases": [
+    {
+      "ticketId": "SPSH-4001",
+      "summary": "POST /api/v1/persons – gültiger Request",
+      "checks": [
+        "Gültige POST-Anfrage an _/api/v1/persons_ erzeugt HTTP 201 mit _id_ in der Response",
+        "Fehlende Pflichtfelder führen zu HTTP 400 mit Validierungsfehler",
+        "Zugriff ohne Token wird mit HTTP 401 abgelehnt",
+        "Zugriff mit fehlender Berechtigung wird mit HTTP 403 abgelehnt"
+      ],
+      "rows": [
+        {
+          "actionSteps": ["Bearer Token setzen (Daten)", "*POST* _/api/v1/persons_ aufrufen"],
+          "data": "Rolle: Landesadmin\nRequest-Body: { \"vorname\": \"Test\", \"nachname\": \"Person\", \"email\": \"test@schule.de\" }",
+          "expectedResult": "HTTP 201 – Response enthält _id_ der neu angelegten Person"
+        }
+      ]
+    },
+    {
+      "ticketId": "SPSH-4001",
+      "summary": "POST /api/v1/persons – Pflichtfeld fehlt",
+      "checks": [
+        "Gültige POST-Anfrage an _/api/v1/persons_ erzeugt HTTP 201 mit _id_ in der Response",
+        "Fehlende Pflichtfelder führen zu HTTP 400 mit Validierungsfehler",
+        "Zugriff ohne Token wird mit HTTP 401 abgelehnt",
+        "Zugriff mit fehlender Berechtigung wird mit HTTP 403 abgelehnt"
+      ],
+      "rows": [
+        {
+          "actionSteps": ["Bearer Token setzen (Daten)", "*POST* _/api/v1/persons_ aufrufen"],
+          "data": "Rolle: Landesadmin\nRequest-Body: { \"vorname\": \"Test\" } (Feld _nachname_ fehlt)",
+          "expectedResult": "HTTP 400 – Validierungsfehler: _nachname_ ist Pflichtfeld"
+        }
+      ]
+    },
+    {
+      "ticketId": "SPSH-4001",
+      "summary": "POST /api/v1/persons – kein Token",
+      "checks": [
+        "Gültige POST-Anfrage an _/api/v1/persons_ erzeugt HTTP 201 mit _id_ in der Response",
+        "Fehlende Pflichtfelder führen zu HTTP 400 mit Validierungsfehler",
+        "Zugriff ohne Token wird mit HTTP 401 abgelehnt",
+        "Zugriff mit fehlender Berechtigung wird mit HTTP 403 abgelehnt"
+      ],
+      "rows": [
+        {
+          "actionSteps": ["Aufruf ohne _Authorization_-Header", "*POST* _/api/v1/persons_ aufrufen"],
+          "data": "Request-Body: { \"vorname\": \"Test\", \"nachname\": \"Person\", \"email\": \"test@schule.de\" }",
+          "expectedResult": "HTTP 401 – Zugriff verweigert (kein Token)"
+        }
+      ]
+    },
+    {
+      "ticketId": "SPSH-4001",
+      "summary": "POST /api/v1/persons – fehlende Berechtigung",
+      "checks": [
+        "Gültige POST-Anfrage an _/api/v1/persons_ erzeugt HTTP 201 mit _id_ in der Response",
+        "Fehlende Pflichtfelder führen zu HTTP 400 mit Validierungsfehler",
+        "Zugriff ohne Token wird mit HTTP 401 abgelehnt",
+        "Zugriff mit fehlender Berechtigung wird mit HTTP 403 abgelehnt"
+      ],
+      "rows": [
+        {
+          "actionSteps": ["Bearer Token setzen (Daten)", "*POST* _/api/v1/persons_ aufrufen"],
+          "data": "Rolle: Schuladmin (hat kein Recht, Personen anzulegen)\nRequest-Body: { \"vorname\": \"Test\", \"nachname\": \"Person\", \"email\": \"test@schule.de\" }",
+          "expectedResult": "HTTP 403 – Zugriff verweigert (fehlende Berechtigung)"
+        }
+      ]
+    }
+  ]
+}

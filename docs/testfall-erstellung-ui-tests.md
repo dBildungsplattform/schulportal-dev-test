@@ -14,7 +14,7 @@ Anforderung (Ticket / User Story)
 Xray-Import
 ```
 
-Der Workflow besteht aus **einem Schritt**. Copilot fragt alle nötigen Informationen ab und speichert das Ergebnis direkt als importierbare CSV-Datei — es erscheint keine Markdown-Tabelle im Chat.
+Der Workflow besteht aus **einem Schritt**. Copilot fragt alle nötigen Informationen ab und speichert das Ergebnis direkt als importierbare CSV-Datei — es erscheint keine Zwischendarstellung im Chat.
 
 ---
 
@@ -26,9 +26,8 @@ Bevor du Copilot anweist, Testfälle zu erstellen, solltest du folgende Informat
 |----------------|--------------------------------------------|--------------------------------------------------------|
 | **Anforderung**| Ticket-Text, Akzeptanzkriterien, Freitext  | Was soll getestet werden?                              |
 | **Testtiefe**  | Positiv, Negativ, Grenzwerte               | Welche Arten von Tests sollen abgedeckt werden?       |
-| **tests**      | `SPSH-234`                                 | Jira-Ticket-ID, der die Testfälle zugeordnet werden   |
-| **Beschreibung**| `"Test aus Playwright importiert."`       | Kurze Beschreibung für alle Testfälle dieser Aufgabe  |
-| **Testplan**   | `SPSH-3163`                                | Ticket-ID des zugehörigen Testplans in Jira           |
+| **Tests**      | `ABCD-234`                                 | Jira-Ticket-ID, der die Testfälle zugeordnet werden   |
+| **Testplan**   | `ABCD-3163`                                | Ticket-ID des zugehörigen Testplans in Jira           |
 | **Stichwörter**| `Automatisiert`, `Beschrieben`             | Xray-Labels; jedes Stichwort wird eine eigene Spalte  |
 | **Autor**      | `susi.sonnenschein`                           | Jira-Benutzername                                     |
 | **Repo**       | `Automatisierung/Navigieren`               | Pfad im Repo, dem die Testfälle thematisch zugeordnet sind |
@@ -65,23 +64,27 @@ Danach fragt Copilot im Chat nach:
 
 ### Was Copilot ausgibt
 
-Nach der Eingabe aller Informationen arbeitet Copilot intern und gibt **ausschließlich** folgendes im Chat aus:
+Nach der Eingabe aller Informationen arbeitet Copilot intern und gibt **ausschließlich** folgende Zeile im Chat aus:
 
-> `CSV gespeichert: .github/manual_tests/<TICKET-ID>-testfaelle.csv`
+> `CSV saved: .github/manual_tests/<TICKET-ID>-testcases.csv`
 
-Es erscheint keine Markdown-Tabelle im Chat. Die fertige CSV-Datei liegt direkt unter:
+Es erscheint kein Zwischenformat im Chat. Intern wird zunächst eine JSON-Datei erzeugt und mit dem Konvertierungsskript in eine CSV-Datei umgewandelt. Die JSON-Datei wird nach erfolgreicher Konvertierung automatisch gelöscht. Die fertige CSV-Datei liegt unter:
 
 ```
-.github/manual_tests/<TICKET-ID>-testfaelle.csv
+.github/manual_tests/<TICKET-ID>-testcases.csv
 ```
 
-Beispiel: `.github/manual_tests/SPSH-234-testfaelle.csv`
+Beispiel: `.github/manual_tests/ABCD-234-testcases.csv`
 
 **Wichtige Formatdetails der CSV:**
 - Trennzeichen: `;`
+- Ausgabe mit UTF-8-BOM für die Kompatibilität mit Excel
+- Semikolons innerhalb von Zellinhalten werden durch Kommata ersetzt
 - Zeilenumbrüche innerhalb von Zellen werden als echte Zeilenumbrüche kodiert (wie Alt+Enter in Excel)
 - Anführungszeichen in Zellen werden als `""` escaped
 - Jedes Stichwort hat eine eigene Spalte (auch wenn der Spaltenname mehrfach vorkommt — das ist gewollt für Xray)
+
+Schlägt die Konvertierung fehl, wird eine Fehlermeldung ausgegeben und keine erfolgreiche CSV-Erzeugung bestätigt.
 
 ---
 
@@ -92,7 +95,7 @@ Beispiel: `.github/manual_tests/SPSH-234-testfaelle.csv`
 - **Negativ-Test:** Falsche oder fehlende Eingaben → System zeigt korrekte Fehlermeldung.
 - **Grenzwert-Test:** Extremwerte (leer, zu lang, Sonderzeichen) → System verhält sich stabil.
 
-**Wo liegt der Unterschied zwischen `tests` und `Testplan`?**
-`tests` ist die ID des Tickets, dem die einzelnen Testfälle zugeordnet werden (z.B. das Feature-Ticket). `Testplan` ist die ID des übergeordneten Testplan-Tickets in Jira/Xray.
+**Wo liegt der Unterschied zwischen `Tests` und `Testplan`?**
+`Tests` ist die ID des Tickets, dem die einzelnen Testfälle zugeordnet werden (z.B. das Feature-Ticket). `Testplan` ist die ID des übergeordneten Testplan-Tickets in Jira/Xray.
 
 ---

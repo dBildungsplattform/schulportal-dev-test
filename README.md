@@ -65,6 +65,17 @@ Prüft die Testabdeckung anhand einer definierten Testgegenstandsliste und schre
 
 ---
 
+## Dokumentation
+
+- [Übersicht der KI-Skills und Agenten](docs/uebersicht-der-ki-elemente.md)
+- [Testfallerstellung mit GitHub Copilot](docs/testfall-erstellung-ui-tests.md)
+
+## Hilfsskript
+
+Das Skript `.github/scripts/json_to_csv.py` konvertiert die von den Testfall-Skills erzeugten JSON-Daten in das für Xray geeignete CSV-Format.
+
+---
+
 ## Ausgabe
 
 Generierte Testfall-CSVs liegen unter `.github/manual_tests/` und sind direkt in Xray importierbar.

@@ -1,6 +1,6 @@
 # Übersicht der KI-Skills und Agenten
 
-> Stand: 14.07.2026
+> Stand: 12.08.2026
 
 ## Skills
 
@@ -18,12 +18,12 @@ Analysiert eine User Story oder Anforderung auf Vollständigkeit, Klarheit und U
 ---
 
 ### 2. generate-test-cases
-**Pfad:** `.github/skills/generate-test-cases/skill.md`
+**Pfad:** `.github/skills/generate-test-cases/SKILL.md`
 
-Leitet aus einer Anforderung **manuelle UI-Testfälle** ab und speichert sie als CSV-Datei für den Xray-Import. Der Skill deckt Positiv-Tests, Negativ-Tests, Grenzwert-Tests und Kombinationen ab. Die Testfälle werden entweder im **Multi-Test-Format** (jedes Szenario erhält eine eigene TCID) oder im **Single-Test-Format** (alle Prüfungen in einer TCID) erstellt. Im Chat erscheint kein Markdown — einziges Ergebnis ist die gespeicherte CSV unter `.github/manual_tests/`.
+Leitet aus einer Anforderung **manuelle UI-Testfälle** ab und speichert sie als CSV-Datei für den Xray-Import. Der Skill deckt Positiv-Tests, Negativ-Tests, Grenzwert-Tests und Kombinationen ab. Die Testfälle werden entweder im **Multi-Test-Format** (jedes Szenario erhält eine eigene TCID) oder im **Single-Test-Format** (alle Prüfungen in einer TCID) erstellt. Im Chat erscheint keine Zwischendarstellung — einziges Ergebnis ist die gespeicherte CSV unter `.github/manual_tests/`.
 
 **Wann einsetzen:**
-- Manuel Testfälle für UI-Funktionalität aus einer User Story abgeleitet werden sollen
+- Manuelle Testfälle für UI-Funktionalität aus einer User Story abgeleitet werden sollen
 - Testfälle für den Import in Xray benötigt werden
 
 ---
@@ -31,7 +31,7 @@ Leitet aus einer Anforderung **manuelle UI-Testfälle** ab und speichert sie als
 ### 3. generate-api-test-cases
 **Pfad:** `.github/skills/generate-api-test-cases/SKILL.md`
 
-Leitet aus einer Backend- oder API-Anforderung **manuelle API-Testfälle** ab und speichert sie als CSV-Datei für den Xray-Import. Die Tests beschreiben HTTP-Aufrufe (Endpoint, Methode, Request-Body, Statuscodes) — nicht UI-Interaktionen. Es werden Positiv-Tests, Negativ-Tests, Auth-Szenarien (401/403) und Grenzwert-Tests unterstützt. Der Output folgt demselben Format wie `generate-test-cases` (Multi-Test oder Single-Test) und wird unter `.github/manual_tests/` als CSV abgelegt.
+Leitet aus einer Backend- oder API-Anforderung **manuelle API-Testfälle** ab und speichert sie als CSV-Datei für den Xray-Import. Die Tests beschreiben HTTP-Aufrufe (Endpoint, Methode, Request-Body, Statuscodes) — nicht UI-Interaktionen. Unterstützt werden Positiv-Tests, Negativ-Tests, Authentifizierungs- und Grenzwert-Tests, sofern das Ticket das erwartete Verhalten konkret vorgibt. Der Output folgt demselben Format wie `generate-test-cases` (Multi-Test oder Single-Test) und wird unter `.github/manual_tests/` als CSV abgelegt.
 
 **Wann einsetzen:**
 - Testfälle für REST-Endpoints, API-Tickets oder Backend-Funktionalität erstellt werden sollen
@@ -52,10 +52,10 @@ Das Repository enthält derzeit **eine Prompt-Vorlage** unter `.github/prompts/`
 ### 1. create-test-coverage.prompt.md
 **Pfad:** `.github/prompts/create-test-coverage.prompt.md`
 
-Prompt-Vorlage zur strukturierten Erstellung von Testabdeckungs-Reports. Sie dient als Ausgangspunkt, um aus vorhandenen Testanforderungen nachvollziehbare Coverage-Übersichten abzuleiten.
+Prompt-Vorlage zur strukturierten Erstellung von Testabdeckungs-Reports. Sie dient als Ausgangspunkt, um aus vorhandenen Testanforderungen nachvollziehbare Coverage-Übersichten abzuleiten. Der Prompt wird im Testautomatisierungs-Repository ausgeführt, in dem sich die automatisierten Tests und der Testgegenstand befinden.
 
 **Wo einsetzen:**
-Der Prompt wird im Repo Testautomatisierung ausgeführt. Dazu muss es den Ordner test_coverage\ mit der Datei testgegenstand.md geben. Wobei testgegenstand.md die Liste der Tests sein sollte, die automatisiert sein sollen. 
+Der Prompt wird im Repo Testautomatisierung ausgeführt. Dazu muss es den Ordner `test_coverage/` mit der Datei `testgegenstand.md` geben. `testgegenstand.md` enthält die Liste der Tests, die automatisiert sein sollen.
 
 **Wann einsetzen:**
 - Wenn ein Testabdeckungsreport für die automatisierten Tests erstellt werden soll
@@ -69,4 +69,4 @@ Der Prompt wird im Repo Testautomatisierung ausgeführt. Dazu muss es den Ordner
 | Datei | Beschreibung |
 |-------|-------------|
 | `.github/copilot-instructions.md` | Anweisungen für GitHub Copilot (derzeit leer) |
-| `.github/scripts/md_to_csv.py` | Hilfs-Skript zum Konvertieren von Markdown-Tabellen in CSV (wird von `generate-test-cases` und `generate-api-test-cases` verwendet) |
+| `.github/scripts/json_to_csv.py` | Hilfs-Skript zum Konvertieren von JSON-Testfall-Daten in CSV (wird von `generate-test-cases` und `generate-api-test-cases` verwendet) |
