@@ -1,0 +1,95 @@
+{
+  "testPlan": "SPSH-3210",
+  "author": "silvia.grosche",
+  "repository": "Devtest/Sprint 19",
+  "priority": "medium",
+  "keywords": ["DevTest19", "Beschrieben"],
+  "cases": [
+    {
+      "ticketId": "SPSH-3208",
+      "summary": "Aufräumen Kategorie für SP",
+      "checks": [
+        "Angebotskacheln in korrekten Kategorien sortiert",
+        "Keine doppelten Kategorien Schulisch / Schulische Angebote",
+        "Kategorie _Schulische Angebote_ wird korrekt angezeigt",
+        "API-Kategorie _Angebote_ existiert nicht mehr"
+      ],
+      "rows": [
+        {
+          "actionSteps": ["Anmelden im SPSH (Daten)", "Startseite betrachten"],
+          "data": "Benutzerin aus Testdaten\nAngebotskategorien:\nDienstliche E-Mail\nUnterricht\nVerwaltung\nSchulische Angebote\nHinweise",
+          "expectedResult": "Die Angebotskacheln sind in den richtigen Kategorien sortiert.\nEs gibt keine doppelten Kategorien Schulisch / Schulische Angebote mehr.\nDie richtige Kategorie _Schulische Angebote_ wird angezeigt."
+        },
+        {
+          "actionSteps": ["Anmelden als Landesadmin", "*Angebotsübersicht* öffnen"],
+          "data": "-",
+          "expectedResult": "Angebote sind in Kategorien sortiert.\nEs gibt keine doppelten Kategorien Schulisch / Schulische Angebote mehr. Die richtige Kategorie _Schulische Angebote_ wird angezeigt."
+        },
+        {
+          "actionSteps": ["Übersicht eines schulischen Angebots öffnen"],
+          "data": "-",
+          "expectedResult": "Kategorie wird richtig angezeigt: _Schulische Angebote_."
+        },
+        {
+          "actionSteps": ["Swagger öffnen (/docs)", "Informationen zu Angebote abrufen"],
+          "data": "-",
+          "expectedResult": "Es gibt keine Kategorie _Angebote_"
+        }
+      ]
+    },
+    {
+      "ticketId": "SPSH-2538",
+      "summary": "SPSH-EFLK-Kommunikation absichern",
+      "checks": [
+        "Zugriff ohne Passwort wird abgelehnt",
+        "LK-Mailadresse wird bei neuer LK erstellt",
+        "LK kann Mails empfangen und senden",
+        "LK erscheint im Adressbuch",
+        "Mailadresse ändert sich bei LK-Umbenennung",
+        "Sperre der LK untersagt Mail-Zugriff"
+      ],
+      "rows": [
+        {
+          "actionSteps": ["Microservice von aussen verfügbar machen"],
+          "data": "-",
+          "expectedResult": "Zugriff ohne Passwort wird abgelehnt."
+        },
+        {
+          "actionSteps": ["EFLK Modul anschalten", "Neue LK anlegen"],
+          "data": "-",
+          "expectedResult": "Mailadresse wird erstellt"
+        },
+        {
+          "actionSteps": ["Als diese LK anmelden", "Mail senden"],
+          "data": "-",
+          "expectedResult": "LK kann auf Mail zugreifen und Mail senden"
+        },
+        {
+          "actionSteps": ["Ins Adressbuch gucken"],
+          "data": "-",
+          "expectedResult": "LK ist im Adressbuch"
+        },
+        {
+          "actionSteps": ["Auf LK-Mail antworten"],
+          "data": "-",
+          "expectedResult": "LK kann Mail empfangen"
+        },
+        {
+          "actionSteps": ["Anmelden als Landesadmin", "LK umbenennen"],
+          "data": "-",
+          "expectedResult": "LK-Mailadresse wurde geändert"
+        },
+        {
+          "actionSteps": ["Mailversand nochmal testen (an beide Mailadressen)"],
+          "data": "-",
+          "expectedResult": "LK kann Mails senden und empfangen über beide Mailadressen."
+        },
+        {
+          "actionSteps": ["Als Landesadmin LK sperren", "Als LK anmelden"],
+          "data": "-",
+          "expectedResult": "LK kann nicht auf ihre Mails zugreifen"
+        }
+      ]
+    }
+  ]
+}

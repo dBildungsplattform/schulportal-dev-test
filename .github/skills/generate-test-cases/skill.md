@@ -5,9 +5,20 @@ description: 'Derives manual test cases from a requirement and saves them direct
 
 # Generate Manual Test Cases
 
-This skill derives manual test cases from a requirement and saves them directly as a **CSV file for Xray import**. No Markdown and no table are displayed in the chat — the only result is the saved CSV file.
+This skill derives manual test cases from a requirement and saves them directly as a **CSV file for Xray import**. The only visible output in the chat is a single-line confirmation after successful CSV generation.
 
 All generated test case content (e.g., Summary, Action, Data, Expected Result) must be written in **German**.
+
+### DO NOT — Absolute Rules
+
+The following rules are absolute. Violating any of them is a failure of this skill.
+
+- **DO NOT** output intermediate artifacts in the chat (test cases, JSON, file contents, or script output)
+- **DO NOT** ask the user to confirm or approve test cases before generating the CSV
+- **DO NOT** add test cases that were not derived from the requirement in Step 1
+- **DO NOT** ask follow-up questions after Step 3 (e.g., "Kannst du die CSV-Datei pruefen?")
+- **DO NOT** explain what you are doing in Steps 2–3
+- The authoritative final chat output rule is defined in Step 4
 
 ## Use When
 - You are asked to create manual test cases from a requirement, user story, or ticket
@@ -22,18 +33,17 @@ All generated test case content (e.g., Summary, Action, Data, Expected Result) m
 
 ## Step 0 — Gather Context (once per task)
 
-**Step 1 — Ask for format via tool**
+**Step 0a — Ask for format**
 
-Use the `vscode_askQuestions` tool and ask exactly this **one** question:
+Ask the user exactly this **one** question and offer these two choices:
 
-- **Question**: "How should the test cases be structured?"
-- **Options** (single choice, no free text):
+- "How should the test cases be structured?"
   - **Multi-Test** — Each scenario gets its own TCID
   - **Single-Test** — All checks in a single test case; each check is its own test step
 
 Wait for the answer before proceeding.
 
-**Step 2 — Ask for the remaining information in the chat**
+**Step 0b — Ask for the remaining information in the chat**
 
 Ask the user the following questions in the chat as a formatted list. Wait for the answer before proceeding:
 
@@ -44,29 +54,14 @@ Ask the user the following questions in the chat as a formatted list. Wait for t
    - Boundary tests
    - Combinations of the above
 3. **Metadata** for all test cases of this task:
-   - **Tests** (ticket ID, e.g., `"SPSH-234"`)
-   - **Description** (e.g., `"Test imported from Playwright."`)
-   - **Test plan** (ticket ID of the associated test plan, e.g., `"SPSH-3163"`)
+   - **Tests** (ticket ID, e.g., `"ABCD-1234"`)
+   - **Test plan** (ticket ID of the associated test plan, e.g., `"ABCD-1234"`)
    - **Keywords** (one or more, e.g., `"Automated"`, `"Described"` — each keyword gets its own column in the table)
-   - **Author** (e.g., `"silvia.grosche"`)
+   - **Author** (e.g., `"maxine.musterfrau"`)
    - **Repository** (e.g., `"Automation/Navigation"`)
    - **Priority** (`"low"`, `"medium"` or `"high"`)
 
 > **Do not continue until all information is available.**
-
----
-
-## Step 0b — Preprocess requirement text (internal — no output)
-
-Replace the following characters in the given requirement before deriving test cases. This step applies to the entire requirement text including acceptance criteria and scope. Do **not** output the result.
-
-| Character | Replacement |
-|-----------|-------------|
-| `"`       | `'`         |
-| `ä`       | `ae`        |
-| `ö`       | `oe`        |
-| `ü`       | `ue`        |
-| `ß`       | `ss`        |
 
 ---
 
@@ -91,77 +86,85 @@ Derive test cases from the requirement. Depending on the chosen **format**, appl
 
 ---
 
-## Step 2 — Build Markdown Table (no chat output)
+## Step 2 — Build JSON (no chat output)
 
-> **This step is executed internally — no output appears in the chat.**
+> **This step is executed internally — no output appears in the chat.** The JSON is a machine-readable intermediate format for the conversion script — it is never shown to the user.
 
-**2a — Build Internal Markdown Table**
+Build the test cases as an internal JSON object with this structure:
 
-Build the test cases as an internal Markdown table with exactly these columns in this order:
-
+```json
+{
+  "testPlan": "<Test plan ticket ID>",
+  "author": "<Author>",
+  "repository": "<Repository>",
+  "priority": "low|medium|high",
+  "keywords": ["<Keyword>", "..."],
+  "cases": [
+    {
+      "ticketId": "<Tests ticket ID>",
+      "summary": "<short test description>",
+      "checks": ["<verification 1>", "<verification 2>", "..."],
+      "rows": [
+        {
+          "actionSteps": ["<step>", ["<sub-step>", "..."], "..."],
+          "data": "<test data or '-'>",
+          "expectedResult": "<verification result of this row>"
+        }
+      ]
+    }
+  ]
+}
 ```
-TCID | Tests | Summary | Description | Action | Data | Expected Result | Test Plan | Author | Keyword | [Keyword | ...] | Priority | Repository
-```
 
-> Each keyword specified by the user gets its own column, all using the header **Keyword**.
+Content Rules:
 
-Table Rules:
-
-- **TCID**: Sequential number, starting at `1`. A test case can have multiple rows — all rows of the same test get the same TCID.
-- **Metadata Rule**: The fields Tests, Summary, Description, Test Plan, Author, Keyword, Priority and Repository appear **only in the first row** of a test — subsequent rows of these columns remain empty. The **Data** field is filled in every row (at least `-`).
-- **Summary**: Format `<Tests>: <short test description>` (e.g., `SPSH-234: Login mit gueltigen Daten`).
-- **Action**: All steps of the test scenario, each prefixed with `# `. Starts with preparatory steps (login, navigation) and ends with the business-relevant action. In the login step, **only the role** is specified (e.g., `# Als Schuladmin anmelden`). **Never** include system rights or account details in the action — these belong in **Data**. Sub-steps are prefixed with `## `.
-  Formatting conventions (within the Action cell, steps separated by `<br>`):
+- **cases**: One entry per test scenario. Each case becomes one TCID (the script assigns TCIDs sequentially — do not include a TCID field).
+- **summary**: Short test description without the ticket-ID prefix (the script builds `<ticketId>: <summary>`).
+- **checks**: One entry per core verification of the case, concise and verb-led (the script builds the Description field from this).
+- **rows**: All steps of the test scenario (preconditions + business action) go in the first row. Subsequent rows describe **sequential, building steps** — only the **delta action** (what changes compared to the previous row), no repeated setup.
+- **actionSteps**: Ordered list of steps for this row. A plain string is a main step; a nested array of strings is a group of sub-steps under it. Starts with preparatory steps (login, navigation) and ends with the business-relevant action. In the login step, **only the role** is specified (e.g., `"Als Schuladmin anmelden"`). **Never** include system rights or account details here — these belong in **data**.
+  Formatting conventions (within each step string):
   - **Buttons** → `*...*`: e.g., `*Schliessen* klicken`
   - **UI elements, proper names, page titles** → `_..._`: e.g., `_Klassenverwaltung_ oeffnen`
   - **Searched texts, messages** → `_..._`: e.g., `_Erfolgsmeldung: Der Vorgang wurde ausgefuehrt._`
- **Data**: Test data relevant to the action step of the row. If no data is relevant: `-`.
- **Expected Result**: The business-relevant verification result of the row, **without** `# ` prefix. Exactly one Expected Result per table row — that of the last business-relevant step.
+- **data**: Test data relevant to the action step of the row. If no data is relevant: `"-"`.
+- **expectedResult**: The business-relevant verification result of the row, plain text (no `#` prefix needed). Exactly one per row — that of the last business-relevant step.
+- All natural-language content (summary, checks, actionSteps, data, expectedResult) must be German (Deutsch). Umlauts and `ß` may be written normally — the script normalizes them for the CSV.
 
 ---
 
-## Step 3 — Self-Check of Markdown Table (internal — no output)
-
-Check the Markdown table from Step 2a internally and correct errors before proceeding to Step 4. Do **not** output this check:
-
-- The number of columns is consistent in each table row
-- Metadata (Tests, Summary, Description, Test Plan, Author, Keyword, Priority and Repository) appear only in the first row of each TCID — subsequent rows of these columns remain empty
-- The **Data** field is filled in every row (at least `-`)
-- The summary follows the format `<Tests>: <short test description>`
-- TCIDs are sequentially consistent (1, 2, 3, …)
-- Natural-language content in Summary, Action text, Data descriptions, and Expected Result is German (Deutsch); if not, rewrite before proceeding (technical strings remain unchanged)
-
----
-
-## Step 4 — Save Markdown File and Execute Script (No Chat Output)
+## Step 3 — Save JSON File and Execute Script (No Chat Output)
 
 > **This step is executed internally — no output appears in the chat.**
 
-**4a — Save Markdown File**
+**3a — Save JSON File**
 
-Save the Markdown table from Step 2a with `create_file` as:
+Save the JSON object from Step 2 with the `Write` tool as:
 
-- **Path**: `.github/manual_tests/<TICKET-ID>-testcases.md`
-  - `<TICKET-ID>`: Ticket ID in original format, e.g., `SPSH-3353`
+- **Path**: `.github/manual_tests/<TICKET-ID>-testcases.json`
+  - `<TICKET-ID>`: Ticket ID in original format, e.g., `ABCD-1234`
 
-**4b — Run Script**
+**3b — Run Script**
 
-Run the conversion script with `run_in_terminal`:
+Run the conversion script with the `Bash` tool:
 
 ```
-python .github/scripts/md_to_csv.py .github/manual_tests/<TICKET-ID>-testcases.md --delete-input
+python .github/scripts/json_to_csv.py .github/manual_tests/<TICKET-ID>-testcases.json --delete-input
 ```
 
-- `--delete-input` automatically deletes the intermediate Markdown file after successful conversion.
+- `--delete-input` automatically deletes the intermediate JSON file after successful conversion.
+- The script validates the JSON structure (required fields, non-empty arrays, valid priority value) — there is no separate self-check step.
 - Check the exit code: In case of an error (exit code ≠ 0), output the error message from stderr in the chat and abort.
 
 ---
 
-## Step 5 — Completion
+## Step 4 — Completion (Final Output, Authoritative Rule)
 
-**Only output in the chat** after successful script execution:
+**Step 4 is the authoritative output rule and the ONLY message the user should see.** Not before, not after. After successful script execution, output exactly this one line in the chat:
 
 > CSV saved: `.github/manual_tests/<TICKET-ID>-testcases.csv`
+
+**Nothing else.** No questions, no explanations, no follow-up.
 
 ---
 
@@ -170,3 +173,16 @@ python .github/scripts/md_to_csv.py .github/manual_tests/<TICKET-ID>-testcases.m
 Stop and inform the user if:
 - The requirement is too vague to derive concrete test steps — ask for clarification
 - No expected behavior can be inferred from the requirement — ask for the acceptance criteria
+
+---
+
+## Self-Reminder — Read This Last
+
+Before you execute this skill, remember:
+
+- Steps 2 through 3 are **completely internal** — the user sees nothing
+- You do **not** show the test cases to the user for approval
+- You do **not** ask if the user wants to verify the CSV
+- You do **not** add test cases beyond what Step 1 derived
+- Follow the authoritative output rule from Step 4
+- If the script fails, output the error and stop — do not continue with follow-up questions

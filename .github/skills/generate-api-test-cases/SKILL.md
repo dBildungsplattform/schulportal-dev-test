@@ -5,219 +5,164 @@ description: 'Derives manual test cases for backend/API tickets and saves them a
 
 # Generate API Test Cases
 
-This skill generates manual API test cases based on a backend request and saves them directly as a **CSV file for Xray import**. The tests describe HTTP calls (method, endpoint, request body, status codes)—not UI interactions. No Markdown or table appears in the chat—the only result is the saved CSV file.
+This skill derives manual API test cases from a backend requirement and saves them as a semicolon-separated CSV file for Xray import. The test cases describe HTTP requests and responses, not UI interactions. The workflow is complete only after the CSV conversion succeeds.
 
-## Use When
-- You should create test cases for a backend ticket, a REST endpoint, or an API requirement
-- Testing is done via Swagger (`/docs`), a REST client (e.g., Postman, curl), or direct HTTP calls
-- There is (still) no frontend for the functional area to be tested
+The skill instructions are written in English. All natural-language content in the generated CSV must be German. Technical API values such as HTTP methods, endpoint paths, JSON keys, header names, and status codes remain unchanged.
 
-## Do Not Use When
-- UI tests need to be created → use `generate-test-cases`
-- Playwright/automated tests need to be written in TypeScript (standard coding workflow)
-- Only an explanation or analysis of a requirement is needed, not test cases
-- Gherkin tests need to be written
+## Scope
 
----
+### Use when
+- The user requests manual test cases for a backend ticket, API requirement, or REST endpoint.
+- The tests will be executed through Swagger, Postman, curl, or another REST client.
+- The requirement provides, or can provide, concrete HTTP calls and expected behavior.
 
-## Step 0 — Gather Context (once per task)
+### Do not use when
+- UI test cases are requested; use `generate-test-cases`.
+- Automated tests, Playwright tests, or TypeScript code are requested.
+- Only a requirement analysis, summary, or translation is requested.
+- Gherkin scenarios are requested.
 
-**Step 1 — Ask for format via tool**
+## Absolute Rules
 
-Use the `vscode_askQuestions` tool and ask exactly this **one** question:
+- Derive only test cases supported by the supplied requirement and acceptance criteria. Never invent endpoints, roles, status codes, response fields, validation rules, or permissions.
+- Do not output test cases, JSON, file contents, intermediate artifacts, or converter output in chat.
+- Do not ask the user to approve or review the generated test cases before conversion.
+- Do not ask follow-up questions after the conversion step unless the conversion fails and clarification is required.
+- Do not continue after a missing prerequisite, validation error, or converter error.
+- The successful completion message in Step 4 is the only chat message after a successful conversion.
 
-- **Question**: "How should the test cases be structured?"
-- **Options** (single choice, no free text):
-  - **Multi-Test** — Each scenario gets its own TCID
-  - **Single-Test** — All checks in a single test case; each check is its own test step
+## Step 0 — Collect and Validate Input
 
-Wait for the response before proceeding.
+Ask the user for all required information below before deriving any test case. The format question may be asked as a choice or as plain text; do not depend on a specific tool name.
 
-**Step 2 — Ask for API details and metadata in the chat**
+1. **Format** (required):
+   - `Multi-Test`: each independent scenario receives its own case and TCID.
+   - `Single-Test`: the complete requirement receives one case and TCID; checks are represented by sequential rows.
+2. **Requirement** (required): user story, ticket text, acceptance criteria, or OpenAPI excerpt.
+3. **Endpoint(s)** (required): HTTP method and path, for example `POST /api/v1/users`; include query and path parameter rules where relevant.
+4. **Authentication** (required): Bearer Token/JWT, Basic Auth, no authentication, or another explicitly described mechanism.
+5. **Test depth** (required): one or more of positive, negative, authentication, and boundary tests.
+6. **Metadata** (required for all cases):
+   - `Tests`: ticket ID, for example `ABCD-234`
+   - `Testplan`: associated test-plan ticket ID, for example `ABCD-1234`
+   - `Keywords`: one or more keywords; each becomes one CSV column
+   - `Author`: for example `maxine.musterfrau`
+   - `Repository`: for example `Devtest/Sprint 21`
+   - `Priority`: exactly `low`, `medium`, or `high`
 
-Ask the user the following questions as a formatted list in the chat. Wait for the response before proceeding:
-
-1. Requirement: What should be tested? (User Story, free-text requirement, ticket content, OpenAPI excerpt)
-2. **Endpoint(s)**: HTTP method and path, e.g., `POST /api/v1/users` — can be multiple
-3. **Auth-Typ**: How is authentication handled?
-   - Bearer Token (JWT)
-   - Basic Auth
-   - No Auth required
-   - Other (please describe)
-4. **Test Depth**: Which test types should be covered? (Multiple selections possible)
-   - Positive tests (HTTP 2xx, happy path)
-   - Negative tests (invalid inputs, missing mandatory fields, HTTP 4xx)
-   - Authentication scenarios (no token, expired token, wrong role → HTTP 401/403)
-   - Boundary value tests (empty strings, maximum values, special characters)
-   - Any combination of the above
-5. **Metadata** for all test cases in this task:
-   - **Tests** (Ticket-ID, e.g., `"SPSH-234"`)
-   - **Description** (e.g., `"Test imported from Playwright."`)
-   - **Test Plan** (Ticket-ID of the associated test plan, e.g., `"SPSH-3163"`)
-   - **Keyword** (one or more, e.g., `"DevTest21"`, `"Described"` — each tag gets its own column)
-   - **Author** (e.g., `"silvia.grosche"`)
-   - **Repository** (e.g., `"Devtest/Sprint 21"`)
-   - **Priority** (one of `"low"`, `"medium"` or `"high"`)
-
-> **Do not proceed until all information has been provided.**
-
----
-
-## Step 0b — Preprocess Requirement Text (internal — no output)
-
-Replace the following characters in the given requirement before deriving test cases. This step applies to the entire requirement text, including acceptance criteria and scope. Do not output the result.
-
-| Character | Replacement |
-|-----------|-------------|
-| `"`       | `'`         |
-| `ä`       | `ae`        |
-| `ö`       | `oe`        |
-| `ü`       | `ue`        |
-| `ß`       | `ss`        |
-
----
+Do not proceed until every required field is present and non-empty. Ask only for the missing or ambiguous information. Do not infer missing acceptance criteria from common API conventions.
 
 ## Step 1 — Derive Test Cases
 
-Derive API test cases from the requirement. Depending on the selected Format, apply one of the following strategies:
+Apply the selected format and derive scenarios in this fixed order:
 
-### Language Rule
+1. Positive tests: the successful request and the status/response behavior explicitly required.
+2. Negative tests: missing or invalid inputs explicitly covered by the requirement.
+3. Authentication tests: only when selected and the requirement defines the relevant behavior. Use separate scenarios for no token, invalid/expired token, and missing permission only when their expected responses are specified.
+4. Boundary tests: only when selected and the requirement defines the relevant boundaries, such as empty values, `null`, maximum lengths, numeric limits, or special characters.
 
-All generated test case content must be written in German (Deutsch), including:
-- Summary
-- Action
-- Data (except technical values like JSON keys, endpoints, and HTTP methods)
-- Expected Result
+If a selected test type cannot be derived without guessing, stop and ask for the missing acceptance criteria. Do not add a generic 401, 403, 400, or 2xx case merely because it is typical for APIs.
 
-Keep technical terms such as HTTP methods, endpoint paths, status codes, JSON keys, and header names in their original technical form.
+### Multi-Test
 
-### Format: Multi-Test (Standard)
+- Create one case and one TCID for each independent scenario that starts from a distinct context or request variant.
+- Put the complete setup and request in the first row of a scenario.
+- Use later rows with the same TCID only for sequential, building actions; include only the delta action.
+- Authentication setup is test data or setup context, not a separate verification step.
 
-- Cover all test types selected by the user (positive, negative, auth, boundary)
-- **All steps of a test scenario must be in the first table row.** Subsequent rows with the same TCID describe **sequential, building steps** within the same scenario — they contain only the delta action.
-- A **new TCID** is created only when the test **starts from scratch** (different auth context, different request body type, completely different scenario).
-- **Only what the requirement concerns is tested.** Setup steps (getting a token) are not separate test steps.
-- **Auth negative scenarios** (no token, wrong role) are separate TCIDs.
+### Single-Test
 
-### Format: Single-Test
+- Create exactly one case and one TCID for the requirement.
+- Put setup and the first request/verification in the first row.
+- Put each additional requirement-derived condition in a later row with the same TCID.
+- Do not create a separate expected result for authentication setup.
 
-- There is exactly **one TCID** for the entire requirement.
-- The first row contains the setup step and the first verification step.
-- Each additional condition to verify is represented by a follow-up row with the same TCID.
-- Setup steps (e.g. obtaining a token) appear only in the first row and do not generate    their own expected result.
+## Step 2 — Build Internal JSON
 
-### API-Specific Derivation Rules
+Build the following JSON object internally. Never show it in chat and never describe its contents to the user.
 
-- **Happy Path first**: Start with the successful call (2xx).
-- **Negative Tests**: Derive error cases directly from the requirement — missing mandatory fields, invalid types, incorrect values.
-- **Auth Scenarios** (if selected): Create separate TCIDs for:
-  - No token → HTTP 401
-  - Expired/invalid token → HTTP 401
-  - Token with wrong role / missing permission → HTTP 403
-- **Boundary Tests**: Empty strings, `null`, maximum values, special characters as request body in Data.
-
----
-
-## Step 2 — Build Markdown Table (No Chat Output)
-
-> **This step is executed internally — no output appears in the chat.**
-
-### Language Rule (Validation)
-
-Ensure all natural-language content in table cells is German (Deutsch):
-- Summary
-- Action text
-- Data descriptions
-- Expected Result
-
-Technical strings remain unchanged (e.g., `POST`, `/api/v1/users`, `_Authorization_`, `_id_`, `HTTP 400`).
-
-**2a — Build Internal Markdown Table**
-
-Build the test cases as an internal Markdown table with exactly these columns in this order:
-
-```
-TCID | Tests | Summary | Description | Action | Data | Expected Result | Test Plan | Author | Keyword | [Keyword | ...] | Priority | Repository
+```json
+{
+  "testPlan": "<Testplan ticket ID>",
+  "author": "<Author>",
+  "repository": "<Repository>",
+  "priority": "low|medium|high",
+  "keywords": ["<Keyword>", "..."],
+  "cases": [
+    {
+      "ticketId": "<Tests ticket ID>",
+      "summary": "<short German test description>",
+      "checks": ["<German verification 1>", "<German verification 2>"],
+      "rows": [
+        {
+          "actionSteps": ["<German step>", ["<German sub-step>", "..."]],
+          "data": "<test data or \"-\">",
+          "expectedResult": "<German HTTP status and business result>"
+        }
+      ]
+    }
+  ]
+}
 ```
 
-> Each keyword specified by the user gets its own column, all using the header **Keyword**.
+### JSON contract
 
-Table Rules:
+- `testPlan`, `author`, `repository`, `priority`, `keywords`, and `cases` are required top-level fields.
+- `keywords` and `cases` must be non-empty arrays. `priority` must be `low`, `medium`, or `high`.
+- Every case requires non-empty `ticketId`, `summary`, `checks`, and `rows` arrays.
+- Every row requires a non-empty `actionSteps` array and `expectedResult`; `data` defaults to `-` when no data is relevant.
+- `actionSteps` contains strings for main steps or arrays of non-empty strings for grouped sub-steps.
+- The converter assigns TCIDs sequentially. Do not add a `tcid` field.
+- `summary` must not repeat the ticket ID; the converter prefixes it automatically.
+- Use German for all natural-language fields. Keep technical API values unchanged.
 
-- **TCID**: Sequential number, starting at `1`. A test case can have multiple rows — all rows of the same test get the same TCID.
-- **Metadata Rule**: The fields Tests, Summary, Description, Test Plan, Author, Keyword, Priority and Repository appear **only in the first row** of a test — subsequent rows of these columns remain empty. The **Data** field is filled in every row (at least `-`).
-- **Summary**: Format `<Tests>: <short test description>` (e.g., `SPSH-234: POST /api/v1/users – gueltiger Request`).
-- **Action**: All steps of the test scenario, each prefixed with # . Starts with the authentication setup step and ends with the HTTP request. Sub-steps are prefixed with ## .
+### API formatting
 
-  Formatting conventions for API actions (steps within a cell separated by `<br>`):
-  - **HTTP methods** → `*GET*`, `*POST*`, `*PUT*`, `*PATCH*`, `*DELETE*`: e.g., `*POST* _/api/v1/users_`
-  - **Endpoints / URL segments** → `_..._`: e.g., `_/api/v1/users/{id}_`
-  - **Header names** → `_..._`: e.g., `_Authorization_` header
-  - **Response fields / JSON keys** → `_..._`: e.g., response contains `_id_`
-  - **Auth setup step**: `# Set bearer token (data)` — the actual token/account is in **Data**
-  - **No-auth scenario**: `# Call without _Authorization_ header`
+- Format methods as `*GET*`, `*POST*`, `*PUT*`, `*PATCH*`, or `*DELETE*`.
+- Enclose endpoints, URL segments, header names, and JSON keys in underscores, for example `*POST* _/api/v1/users_` and `_Authorization_`.
+- Put tokens, roles, accounts, request bodies, query parameters, and path parameters in `data`, never in an authentication step's prose.
+- Use `Bearer Token setzen (Daten)` for a Bearer setup and `Aufruf ohne _Authorization_-Header` for a no-auth scenario.
+- `expectedResult` contains the specified HTTP status and the specified business verification, for example `HTTP 201 – Response enthält _id_`.
 
-- **Data**: Test data relevant to the action step of the row. Contains:
-  - Bearer token / role / account description for the auth setup step
-  - Request body (JSON or field list) for the HTTP request step
-  - Query parameters / path parameters when relevant
-  - `-` if no data is relevant
-- **Expected Result**: HTTP status code + business validation result, e.g.:
-  - `HTTP 201 – Response contains _id_ of the created resource`
-  - `HTTP 400 – Validation error: _name_ is required`
-  - `HTTP 401 – Access denied (no token)`
-  - `HTTP 403 – Access denied (missing permission)`
+## Step 3 — Convert and Validate
 
----
+Perform these actions internally and do not output their artifacts or command output in chat.
 
-## Step 3 — Self-Check of Markdown Table (internal — no output)
+1. Write the JSON to `.github/manual_tests/<TICKET-ID>-testcases.json`, preserving the ticket ID as supplied.
+2. Run the repository converter:
 
-Check the Markdown table from Step 2a internally and correct errors before proceeding to Step 4. Do **not** output this check:
+   ```text
+   python .github/scripts/json_to_csv.py .github/manual_tests/<TICKET-ID>-testcases.json --delete-input
+   ```
 
-- The number of columns is consistent in each table row
-- Metadata (Tests, Summary, Description, Test Plan, Author, Keyword, Priority, Repository) appear only in the first row of each TCID — subsequent rows of these columns remain empty
-- The **Data** field is filled in every row (at least `-`)
-- The summary follows the format `<Tests>: <short test description>` (e.g., `SPSH-234: POST /api/v1/users – gueltiger Request`)
-- TCIDs are sequentially consistent (1, 2, 3, …)
-- Each expected result begins with an HTTP status code (except for pure setup rows without a validation step)
-- Natural-language content in Summary, Action text, Data descriptions, and Expected Result is German (Deutsch); if not, rewrite before proceeding (technical strings like HTTP methods, endpoints, status codes, JSON keys, and header names remain unchanged)
+3. Treat a non-zero exit code, stderr error, invalid JSON, missing input file, missing required field, invalid priority, or empty required array as a failure. Do not continue after failure.
+4. On failure, report a concise German error and stop. Do not report the JSON, CSV contents, command output, or any other intermediate artifact.
+5. The `--delete-input` option may delete the JSON only after successful conversion. The resulting CSV is `.github/manual_tests/<TICKET-ID>-testcases.csv`.
 
----
+## Step 4 — Internal Final Check and Completion
 
-## Step 4 — Save Markdown File and Execute Script (No Chat Output)
+Before reporting success, verify internally that:
 
-> **This step is executed internally — no output appears in the chat.**
+- all required input and metadata are present;
+- every scenario is supported by the requirement and uses the selected format;
+- no UI interaction or invented API behavior was added;
+- all natural-language CSV content is German;
+- methods, endpoints, headers, JSON keys, status codes, rows, and TCIDs follow the API formatting rules;
+- the JSON contract and converter path are correct; and
+- no intermediate content will be sent to chat.
 
-**4a — Save Markdown File**
+After successful conversion, output exactly this one line and nothing else:
 
-Save the Markdown table from Step 2a with `create_file` as:
-
-- **Path**: `.github/manual_tests/<TICKET-ID>-testcases.md`
-  - `<TICKET-ID>`: Ticket ID in original format, e.g., `SPSH-3353`
-
-**4b — Execute Script**
-
-Run the conversion script with `run_in_terminal`:
-
-```
-python .github/scripts/md_to_csv.py .github/manual_tests/<TICKET-ID>-testcases.md --delete-input
-```
-
-- `--delete-input` automatically deletes the intermediate Markdown file after successful conversion.
-- Check the exit code: In case of an error (exit code ≠ 0), output the error message from stderr in the chat and abort.
-
----
-
-## Step 5 — Completion
-
-**Only output in the chat** after successful script execution:
-
-> CSV saved: `.github/manual_tests/<TICKET-ID>-testcases.csv`
-
----
+> CSV gespeichert: `.github/manual_tests/<TICKET-ID>-testcases.csv`
 
 ## When the Skill Cannot Proceed
 
-Stop and inform the user if:
-- The request is too vague to derive concrete HTTP calls — ask for the endpoint and expected behavior
-- No expected behavior (status code / response body) can be inferred from the request — ask for the acceptance criteria
+Stop and ask for the missing information when:
+
+- the requirement, endpoint, authentication, test depth, or metadata is missing;
+- concrete HTTP calls cannot be derived;
+- expected status codes or response behavior are not specified;
+- a selected scenario requires assumptions about roles, permissions, validation, or boundaries; or
+- JSON creation or conversion fails.
+
+The response must state only what information or correction is needed to continue. Do not generate a partial CSV.
