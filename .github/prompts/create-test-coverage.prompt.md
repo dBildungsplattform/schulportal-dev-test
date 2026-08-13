@@ -1,21 +1,21 @@
-Bitte prüfe die Testabdeckung im folgenden Fall:
-Die zu testenden Fälle stehen in test_coverage\testgegenstand.md,
-die Tests findest du im Ordner tests.
+Please check the test coverage in the following case:
+The test cases are located in test_coverage\testitems.md,
+and the tests are in the tests folder.
 
-Lies dazu den Inhalt der relevanten Testdateien – nicht nur deren Namen.
-Prüfe, ob der Testgegenstand als eigenständiger describe/test-Block vorkommt
-oder nur implizit als Schritt in einem anderen Test abgedeckt wird.
+Be sure to read the contents of the relevant test files—not just their names.
+Check whether the subject under test appears as a standalone describe/test block
+or is covered only implicitly as a step in another test.
 
-Verwende folgende Status:
-- ✅ Vollständig abgedeckt: direkt und vollständig getestet, alle Nutzergruppen berücksichtigt
-- ⚠️ Teilweise abgedeckt: implizit, nur ein Teil der Nutzergruppen, oder nur als Nebeneffekt eines anderen Tests
-- ❌ Nicht abgedeckt: kein Test vorhanden
+Use the following statuses:
+- ✅ Fully covered: tested directly and completely; all user groups included
+- ⚠️ Partially covered: implicitly; only some user groups, or only as a side effect of another test
+- ❌ Not covered: no test available
 
-Erstelle eine Markdown-Tabelle mit den Spalten:
-Nr. | Testgegenstand | Nutzergruppe(n) | Status | Testdatei(en) | Anmerkungen
+Create a Markdown table with the columns:
+No. | Subject under test | User group(s) | Status | Test file(s) | Notes
 
-In der Spalte "Anmerkungen" begründe kurz, warum du den Status so bewertet hast,
-besonders bei ⚠️ und ❌.
+In the "Comments" column, briefly explain why you rated the status that way,
+especially for ⚠️ and ❌.
 
-Schreibe das Ergebnis in test_coverage\testabdeckung.md.
-Ergänze am Ende eine Übersicht mit: Anzahl gesamt, ✅, ⚠️, ❌.
+Write the result in test_coverage\test_coverage_<current date in YYYY-MM-DD format>.md. Add the current date to the filename.
+At the end, add a summary with: Total count, ✅, ⚠️, ❌.

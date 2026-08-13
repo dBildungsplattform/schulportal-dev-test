@@ -1,55 +1,55 @@
 # schulportal-ai-collection
 
-Dieses Repository enthält Hilfsmittel für das Testen und die Qualitätssicherung des Schulportals – darunter manuelle Testfälle, Prompts und GitHub Copilot Skills.
+This repository contains tools for testing and quality assurance of the school portal, including manual test cases, prompts, and GitHub Copilot Skills.
 
 ---
 
 ## GitHub Copilot Skills
 
-Die Skills befinden sich in `.github/skills/` und werden automatisch von GitHub Copilot erkannt und aktiviert. Sie können im Copilot-Chat durch natürliche Sprache ausgelöst werden.
+The skills are located in `.github/skills/` and are automatically detected and activated by GitHub Copilot. They can be triggered in Copilot Chat using natural language.
 
 ---
 
 ### 1. `analyze-requirement`
 
-**Zweck:** Analysiert eine User Story oder Anforderung auf Vollständigkeit, Eindeutigkeit und Qualität anhand von 10 strukturierten Checks. Das Ergebnis ist ein Bericht mit Status-Icons (✅ / ⚠️ / ❌) und einem abschließenden **READY / NOT READY**-Urteil.
+**Purpose:** Analyzes a user story or requirement for completeness, clarity, and quality using 10 structured checks. The result is a report with status icons (✅ / ⚠️ / ❌) and a final **READY / NOT READY** verdict.
 
-**Verwendung:**
-> „Analysiere diese User Story: …"  
-> „Prüfe die Anforderung auf Lücken: …"  
-> „Ist dieses Ticket ready for development?"
+**Usage:**
+> "Analyze this user story: ..."  
+> "Check this requirement for gaps: ..."  
+> "Is this ticket ready for development?"
 
-Copilot fragt zunächst nach dem Anforderungstext und optionalem Kontext, bevor die Analyse startet.
+Copilot first asks for the requirement text and optional context before starting the analysis.
 
 ---
 
 ### 2. `generate-test-cases`
 
-**Zweck:** Leitet manuelle Testfälle aus einer Anforderung oder User Story ab und speichert sie als **CSV-Datei für den Xray-Import** unter `.github/manual_tests/`.
+**Purpose:** Derives manual test cases from a requirement or user story and saves them as a **CSV file for Xray import** under `.github/manual_tests/`.
 
-**Verwendung:**
-> „Erstelle Testfälle für SPSH-1234."  
-> „Leite manuelle Tests aus dieser Anforderung ab: …"
+**Usage:**
+> "Create test cases for SPSH-1234."  
+> "Derive manual tests from this requirement: ..."
 
-Copilot fragt interaktiv nach:
-- **Format**: Multi-Test (ein Testfall pro Szenario) oder Single-Test (alle Schritte in einem Testfall)
-- **Anforderung**, **Testtiefe** (Positiv, Negativ, Grenzwert)
-- **Metadaten**: Ticket-ID, Testplan, Stichwörter, Autor, Repo, Priorität
+Copilot interactively asks for:
+- **Format**: Multi-test (one test case per scenario) or single-test (all steps in one test case)
+- **Requirement** and **test depth** (positive, negative, boundary value)
+- **Metadata**: ticket ID, test plan, keywords, author, repository, priority
 
 ---
 
 ### 3. `generate-api-test-cases`
 
-**Zweck:** Wie `generate-test-cases`, jedoch speziell für **Backend- und API-Tickets**. Die Tests beschreiben HTTP-Aufrufe (Methode, Endpoint, Request-Body, Statuscodes) und eignen sich für den Test über Swagger (`/docs`) oder REST-Clients wie Postman.
+**Purpose:** Similar to `generate-test-cases`, but specifically for **backend and API tickets**. The tests describe HTTP requests (method, endpoint, request body, status codes) and are suitable for testing via Swagger (`/docs`) or REST clients such as Postman.
 
-**Verwendung:**
-> „Erstelle API-Testfälle für den Endpoint POST /api/v1/users."  
-> „Testfälle für dieses Backend-Ticket: …"
+**Usage:**
+> "Create API test cases for the POST /api/v1/users endpoint."  
+> "Test cases for this backend ticket: ..."
 
-Copilot fragt interaktiv nach:
-- **Format**: Multi-Test oder Single-Test
-- **Endpoint(s)**, **Auth-Typ**, **Testtiefe**
-- **Metadaten**: Ticket-ID, Testplan, Stichwörter, Autor, Repo, Priorität
+Copilot interactively asks for:
+- **Format**: Multi-test or single-test
+- **Endpoint(s)**, **authentication type**, **test depth**
+- **Metadata**: ticket ID, test plan, keywords, author, repository, priority
 
 ---
 
@@ -57,25 +57,47 @@ Copilot fragt interaktiv nach:
 
 ### `create-test-coverage`
 
-Datei: `.github/prompts/create-test-coverage.prompt.md`
+The [create-test-coverage prompt](.github/prompts/create-test-coverage.prompt.md) is executed in the repository where the test automation is implemented. It reviews how well the automated regression tests cover the test items defined by the test management team.
 
-Prüft die Testabdeckung anhand einer definierten Testgegenstandsliste und schreibt das Ergebnis als Markdown-Tabelle nach `test_coverage/testabdeckung.md`.
+Before using the prompt in the target repository:
 
-> **Hinweis:** Dieser Prompt muss im Repository ausgeführt werden, in dem die automatisierten Tests liegen – nicht in diesem Repo. Nur dort hat Copilot Zugriff auf die Testdateien und den Testgegenstand.
+1. Identify the repository folder containing all automated test files. The prompt uses `tests` as the example name for this folder. If the folder has a different name in your repository, update the test folder name in the prompt accordingly.
+2. Create a `test_coverage` folder in the target repository.
+3. Create and maintain `test_coverage/testitems.md` as the test management input file. Define which test items must be covered, for which user groups, and at what level of depth.
+
+The `testitems.md` file should use the following format:
+
+```markdown
+| Test Item | User |
+|---|---|
+| Login | Admin, User |
+```
+
+The test management team defines the required scope of automated testing. For example, `Login` may need to be covered for both the `Admin` and `User` groups. Add one row for each test item and list all relevant user groups in the `User` column.
+
+When the prompt is executed, the LLM reads the relevant test files, not just their filenames. It checks whether each test item is covered by an independent `describe`/`test` block or only implicitly as a step in another test. The result uses the following statuses:
+
+- ✅ **Fully covered**: directly and completely tested for all specified user groups.
+- ⚠️ **Partially covered**: covered implicitly, only covered for some user groups, or only covered as a side effect of another test.
+- ❌ **Not covered**: no test is available.
+
+The LLM saves the assessment in the target repository as `test_coverage/test_coverage_YYYY-MM-DD.md`. The file contains a table with the assessment details and a summary of the total number of test items and the counts for ✅, ⚠️ and ❌. The dated filename supports traceability across repeated assessments. In practice, this prompt is useful for making gaps in regression test coverage visible quickly.
+
+> **Note:** This prompt must be run in the repository that contains the automated tests, not in this repository. Only there can Copilot access the test files and the test items.
 
 ---
 
-## Dokumentation
+## Documentation
 
-- [Übersicht der KI-Skills und Agenten](docs/uebersicht-der-ki-elemente.md)
-- [Testfallerstellung mit GitHub Copilot](docs/testfall-erstellung-ui-tests.md)
+- [Overview of AI skills and agents](docs/uebersicht-der-ki-elemente.md)
+- [Set up and use generate-test-cases](.github/skills/generate-test-cases/GUIDE.md)
 
-## Hilfsskript
+## Helper Script
 
-Das Skript `.github/scripts/json_to_csv.py` konvertiert die von den Testfall-Skills erzeugten JSON-Daten in das für Xray geeignete CSV-Format.
+The `.github/scripts/json_to_csv.py` script converts JSON data generated by the test case skills into the CSV format required by Xray.
 
 ---
 
-## Ausgabe
+## Output
 
-Generierte Testfall-CSVs liegen unter `.github/manual_tests/` und sind direkt in Xray importierbar.
+Generated test case CSV files are stored under `.github/manual_tests/` and can be imported directly into Xray.
